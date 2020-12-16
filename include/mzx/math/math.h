@@ -2,6 +2,7 @@
 #define __MZX_MATH_H__
 
 #include <cstdint>
+#include <algorithm>
 
 namespace mzx
 {
