@@ -18,7 +18,7 @@ namespace mzx
         static RType Two();
         static RType SmoothTimeMin();
         static RType Dot48();
-        static RType DOT235();
+        static RType Dot235();
         static RType Sqrt(const RType &a);
         static RType Rad2Deg(const RType &a);
         static RType Deg2Rad(const RType &a);
@@ -422,7 +422,7 @@ namespace mzx
         {
             return 0.48f;
         }
-        static float DOT235()
+        static float Dot235()
         {
             return 0.235f;
         }
@@ -432,11 +432,11 @@ namespace mzx
         }
         static float Rad2Deg(const float &a)
         {
-            return a * 180 / 3.14159265358979323846;
+            return a * 180.0f / 3.14159265358979323846f;
         }
         static float Deg2Rad(const float &a)
         {
-            return a * 3.14159265358979323846 / 180;
+            return a * 3.14159265358979323846f / 180.0f;
         }
         static float Acos(const float &a)
         {
