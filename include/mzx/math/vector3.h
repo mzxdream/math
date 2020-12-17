@@ -127,43 +127,43 @@ namespace mzx
     public:
         RType &operator[](int i)
         {
-            return &x_[i];
+            return (&x_)[i];
         }
         const RType &operator[](int i) const
         {
             return &x_[i];
         }
-        static Vector3 operator+(const Vector3 &a, const Vector3 &b)
+        Vector3 operator+(const Vector3 &a) const
         {
-            return Vector3(a.x_ + b.x_, a.y_ + b.y_, a.z_ + b.z_);
+            return Vector3(x_ + a.x_, y_ + a.y_, z_ + a.z_);
         }
-        static Vector3 operator-(const Vector3 &a, const Vector3 &b)
+        Vector3 operator-(const Vector3 &a) const
         {
-            return Vector3(a.x_ - b.x_, a.y_ - b.y_, a.z_ - b.z_);
+            return Vector3(x_ - a.x_, y_ - a.y_, z_ - a.z_);
         }
-        static Vector3 operator-(const Vector3 &a)
+        Vector3 operator-() const
         {
-            return Vector3(-a.x_, -a.y_, -a.z_);
+            return Vector3(-x_, -y_, -z_);
         }
-        static Vector3 operator*(const Vector3 &a, const RType &s)
+        Vector3 operator*(const RType &s) const
+        {
+            return Vector3(x_ * s, y_ * s, z_ * s);
+        }
+        friend Vector3 operator*(const RType &s, const Vector3 &a)
         {
             return Vector3(a.x_ * s, a.y_ * s, a.z_ * s);
         }
-        static Vector3 operator*(const RType &s, const Vector3 &a)
+        Vector3 operator/(const RType &d) const
         {
-            return Vector3(a.x_ * s, a.y_ * s, a.z_ * s);
+            return Vector3(x_ / d, y_ / d, z_ / d);
         }
-        static Vector3 operator/(const Vector3 &a, const RType &d)
+        bool operator==(const Vector3 &a) const
         {
-            return Vector3(a.x_ / d, a.y_ / d, a.z_ / d);
+            return SqrDistance(*this, a) <= R_SQR_EPSILON;
         }
-        static bool operator==(const Vector3 &a, const Vector3 &b)
+        bool operator!=(const Vector3 &a) const
         {
-            return SqrDistance(a, b) <= R_SQR_EPSILON;
-        }
-        static bool operator!=(const Vector3 &a, const Vector3 &b)
-        {
-            return !(a == b);
+            return !(*this == a);
         }
 
     public:
@@ -378,21 +378,21 @@ namespace mzx
     };
 
     template <typename T>
-    const Vector3<T>::RType Vector3<T>::R_EPSILON = Vector3<T>::MathUtil::Epsilon();
+    const typename Vector3<T>::RType Vector3<T>::R_EPSILON = Vector3<T>::MathUtil::Epsilon();
     template <typename T>
-    const Vector3<T>::RType Vector3<T>::R_SQR_EPSILON = Vector3<T>::MathUtil::Epsilon() * Vector3<T>::MathUtil::Epsilon();
+    const typename Vector3<T>::RType Vector3<T>::R_SQR_EPSILON = Vector3<T>::MathUtil::Epsilon() * Vector3<T>::MathUtil::Epsilon();
     template <typename T>
-    const Vector3<T>::RType Vector3<T>::R_ZERO = Vector3<T>::MathUtil::Zero();
+    const typename Vector3<T>::RType Vector3<T>::R_ZERO = Vector3<T>::MathUtil::Zero();
     template <typename T>
-    const Vector3<T>::RType Vector3<T>::R_ONE = Vector3<T>::MathUtil::One();
+    const typename Vector3<T>::RType Vector3<T>::R_ONE = Vector3<T>::MathUtil::One();
     template <typename T>
-    const Vector3<T>::RType Vector3<T>::R_TWO = Vector3<T>::MathUtil::Two();
+    const typename Vector3<T>::RType Vector3<T>::R_TWO = Vector3<T>::MathUtil::Two();
     template <typename T>
-    const Vector3<T>::RType Vector3<T>::R_SMOOTH_TIME_MIN = Vector3<T>::MathUtil::SmoothTimeMin();
+    const typename Vector3<T>::RType Vector3<T>::R_SMOOTH_TIME_MIN = Vector3<T>::MathUtil::SmoothTimeMin();
     template <typename T>
-    const Vector3<T>::RType Vector3<T>::R_DOT48 = Vector3<T>::MathUtil::Dot48();
+    const typename Vector3<T>::RType Vector3<T>::R_DOT48 = Vector3<T>::MathUtil::Dot48();
     template <typename T>
-    const Vector3<T>::RType Vector3<T>::R_DOT235 = Vector3<T>::MathUtil::Dot235();
+    const typename Vector3<T>::RType Vector3<T>::R_DOT235 = Vector3<T>::MathUtil::Dot235();
 
     template <>
     class Vector3MathUtil<float>
