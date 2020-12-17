@@ -99,6 +99,14 @@ namespace mzx
         {
             return Normalize(*this);
         }
+        RType SqrMagnitude() const
+        {
+            return x_ * x_ + y_ * y_ + z_ * z_;
+        }
+        RType Magnitude() const
+        {
+            return Vector3Util<RType>::Sqrt(x_ * x_ + y_ * y_ + z_ * z_);
+        }
 
     public:
         RType &operator[](int i)
@@ -108,6 +116,38 @@ namespace mzx
         const RType &operator[](int i) const
         {
             return &x_[i];
+        }
+        static Vector3 operator+(const Vector3 &a, const Vector3 &b)
+        {
+            return Vector3(a.x_ + b.x_, a.y_ + b.y_, a.z_ + b.z_);
+        }
+        static Vector3 operator-(const Vector3 &a, const Vector3 &b)
+        {
+            return Vector3(a.x_ - b.x_, a.y_ - b.y_, a.z_ - b.z_);
+        }
+        static Vector3 operator*(const Vector3 &a, RType s)
+        {
+            return Vector3(a.x_ * s, a.y_ * s, a.z_ * s);
+        }
+        static Vector3 operator*(RType s, const Vector3 &a)
+        {
+            return Vector3(a.x_ * s, a.y_ * s, a.z_ * s);
+        }
+        static Vector3 operator/(const Vector3 &a, RType d)
+        {
+            return Vector3(a.x_ / d, a.y_ / d, a.z_ / d);
+        }
+        static Vector3 operator-(const Vector3 &a)
+        {
+            return Vector3(-a.x_, -a.y_, -a.z_);
+        }
+        static bool operator==(const Vector3 &a, const Vector3 &b)
+        {
+            return Distance(a, b) < R_EPSILON * R_EPSILON;
+        }
+        static bool operator!=(const Vector3 &a, const Vector3 &b)
+        {
+            return !(a == b);
         }
 
     public:
@@ -211,6 +251,103 @@ namespace mzx
                 return vec - plane_normal * Dot(vec, plane_normal) / sqr_mag;
             }
             return vec;
+        }
+        static RType Angle(const Vector3 &from, const Vector3 &to)
+        {
+            auto denominator = Vector3Util<RType>::Sqrt(from.SqrMagnitude() * to.SqrMagnitude());
+            if (denominator > R_EPSILON * R_EPSILON)
+            {
+                auto dot = Vector3Util<RType>::Clamp(Dot(from, to) / denominator, -R_ONE, R_ONE);
+                return Vector3Util<RType>::Rad2Deg(Vector3Util<RType>::Acos(dot));
+            }
+            return R_ZERO;
+        }
+        static RType SignedAngle(const Vector3 &from, const Vector3 &to, const Vector3 &axis)
+        {
+            auto cross_x = from.y_ * to.z_ - from.z_ * to.y_;
+            auto cross_y = from.z_ * to.x_ - from.x_ * to.z_;
+            auto cross_z = from.x_ * to.y_ - from.y_ * to.x_;
+            if (axis.x_ * cross_x + axis.y_ * cross_y + axis.z_ * cross_z >= R_ZERO)
+            {
+                return Angle(from, to);
+            }
+            return -Angle(from, to);
+        }
+        static RType Distance(const Vector3 &a, const Vector3 &b)
+        {
+            return (a - b).Magnitude();
+        }
+        static Vector3 ClampMagnitude(const Vector3 &vec, float max_magnitude)
+        {
+            auto sqr_mag = vec.SqrMagnitude();
+            if (sqr_mag > max_magnitude * max_magnitude)
+            {
+                auto mag = Vector3Util<RType>::Sqrt(sqr_mag);
+                return Vector3(vec.x_ * max_magnitude / mag, vec.y_ * max_magnitude / mag, vec.z_ * max_magnitude / mag);
+            }
+            return vec;
+        }
+        static RType SqrMagnitude(const Vector3 &vec)
+        {
+            return vec.x_ * vec.x_ + vec.y_ * vec.y_ + vec.z_ * vec.z_;
+        }
+        static RType Magnitude(const Vector3 &vec)
+        {
+            return Vector3Util<RType>::Sqrt(vec.x_ * vec.x_ + vec.y_ * vec.y_ + vec.z_ * vec.z_);
+        }
+        static Vector3 Min(const Vector3 &lhs, const Vector3 &rhs)
+        {
+            return Vector3(RMin(lhs.x_, rhs.x_), RMin(lhs.y_, rhs.y_), RMin(lhs.z_, rhs.z_));
+        }
+        static Vector3 Max(const Vector3 &lhs, const Vector3 &rhs)
+        {
+            return Vector3(RMax(lhs.x_, rhs.x_), RMax(lhs.y_, rhs.y_), RMax(lhs.z_, rhs.z_));
+        }
+        static Vector3 Zero()
+        {
+            return Vector3(R_ZERO, R_ZERO, R_ZERO);
+        }
+        static Vector3 One()
+        {
+            return Vector3(R_ONE, R_ONE, R_ONE);
+        }
+        static Vector3 Forward()
+        {
+            return Vector3(R_ZERO, R_ZERO, R_ONE);
+        }
+        static Vector3 Back()
+        {
+            return Vector3(R_ZERO, R_ZERO, -R_ONE);
+        }
+        static Vector3 Up()
+        {
+            return Vector3(R_ZERO, R_ONE, R_ZERO);
+        }
+        static Vector3 Down()
+        {
+            return Vector3(R_ZERO, -R_ONE, R_ZERO);
+        }
+        static Vector3 Left()
+        {
+            return Vector3(-R_ONE, R_ZERO, R_ZERO);
+        }
+        static Vector3 Right()
+        {
+            return Vector3(R_ONE, R_ZERO, R_ZERO);
+        }
+
+    private:
+        static RType RMin(RType a, RType b)
+        {
+            return a < b ? a : b;
+        }
+        static RType RMax(RType a, RType b)
+        {
+            return a > b ? a : b;
+        }
+        static RType RClamp(RType t, RType mint, RType maxt)
+        {
+            return t < mint ? mint : (t > maxt ? maxt : t);
         }
 
     private:
