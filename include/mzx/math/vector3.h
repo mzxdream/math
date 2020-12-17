@@ -377,6 +377,23 @@ namespace mzx
         RType z_;
     };
 
+    template <typename T>
+    const Vector3<T>::RType Vector3<T>::R_EPSILON = Vector3<T>::MathUtil::Epsilon();
+    template <typename T>
+    const Vector3<T>::RType Vector3<T>::R_SQR_EPSILON = Vector3<T>::MathUtil::Epsilon() * Vector3<T>::MathUtil::Epsilon();
+    template <typename T>
+    const Vector3<T>::RType Vector3<T>::R_ZERO = Vector3<T>::MathUtil::Zero();
+    template <typename T>
+    const Vector3<T>::RType Vector3<T>::R_ONE = Vector3<T>::MathUtil::One();
+    template <typename T>
+    const Vector3<T>::RType Vector3<T>::R_TWO = Vector3<T>::MathUtil::Two();
+    template <typename T>
+    const Vector3<T>::RType Vector3<T>::R_SMOOTH_TIME_MIN = Vector3<T>::MathUtil::SmoothTimeMin();
+    template <typename T>
+    const Vector3<T>::RType Vector3<T>::R_DOT48 = Vector3<T>::MathUtil::Dot48();
+    template <typename T>
+    const Vector3<T>::RType Vector3<T>::R_DOT235 = Vector3<T>::MathUtil::Dot235();
+
     template <>
     class Vector3MathUtil<float>
     {
