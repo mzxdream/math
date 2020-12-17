@@ -157,6 +157,34 @@ namespace mzx
         {
             return Vector3(x_ / d, y_ / d, z_ / d);
         }
+        Vector3 &operator+=(const Vector3 &a)
+        {
+            x_ += a.x_;
+            y_ += a.y_;
+            z_ += a.z_;
+            return *this;
+        }
+        Vector3 &operator-=(const Vector3 &a)
+        {
+            x_ -= a.x_;
+            y_ -= a.y_;
+            z_ -= a.z_;
+            return *this;
+        }
+        Vector3 &operator*=(const RType &s)
+        {
+            x_ *= s;
+            y_ *= s;
+            z_ *= s;
+            return *this;
+        }
+        Vector3 &operator/=(const RType &d)
+        {
+            x_ /= d;
+            y_ /= d;
+            z_ /= d;
+            return *this;
+        }
         bool operator==(const Vector3 &a) const
         {
             return SqrDistance(*this, a) <= R_SQR_EPSILON;
@@ -187,7 +215,7 @@ namespace mzx
                 return target;
             }
             auto dist = MathUtil::Sqrt(sqr_dist);
-            return Vector3(current.x + x * max_distance / dist, current.y + y * max_distance / dist, current.z + z * max_distance / dist);
+            return Vector3(current.x_ + x * max_distance / dist, current.y_ + y * max_distance / dist, current.z_ + z * max_distance / dist);
         }
         static Vector3 SmoothDamp(const Vector3 &current, const Vector3 &target, Vector3 &current_velocity, const RType &smooth_time, const RType &max_speed, const RType &delta_time)
         {
@@ -228,7 +256,7 @@ namespace mzx
         static Vector3 Reflect(const Vector3 &in_direction, const Vector3 &in_normal)
         {
             auto factor = -R_TWO * Dot(in_normal, in_direction);
-            return Vector3(factor * in_normal.x + in_direction.x, factor * in_normal.y + in_direction.y, factor * in_normal.z + in_direction.z);
+            return Vector3(factor * in_normal.x_ + in_direction.x_, factor * in_normal.y_ + in_direction.y_, factor * in_normal.z_ + in_direction.z_);
         }
         static Vector3 Normalize(const Vector3 &value)
         {
