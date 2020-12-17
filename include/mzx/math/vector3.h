@@ -39,6 +39,78 @@ namespace mzx
         }
 
     public:
+        T X() const
+        {
+            return x_;
+        }
+        void SetX(RType x)
+        {
+            x_ = x;
+        }
+        T Y() const
+        {
+            return y_;
+        }
+        void SetY(RType y)
+        {
+            y_ = y;
+        }
+        T Z() const
+        {
+            return z_;
+        }
+        void SetZ(RType z)
+        {
+            z_ = z;
+        }
+        void Set(RType x, RType y, RType z)
+        {
+            x_ = x;
+            y_ = y;
+            z_ = z;
+        }
+        void Scale(const Vector3 &s)
+        {
+            x_ *= s.x_;
+            y_ *= s.y_;
+            z_ *= s.z_;
+        }
+        bool Equals(const Vector3 &other) const
+        {
+            return x_ == other.x_ && y_ == other.y_ && z_ == other.z_;
+        }
+        void Normalize()
+        {
+            auto mag = Magnitude(*this);
+            if (mag > R_EPSILON)
+            {
+                x_ /= mag;
+                y_ /= mag;
+                z_ /= mag;
+            }
+            else
+            {
+                x_ = R_ZERO;
+                y_ = R_ZERO;
+                z_ = R_ZERO;
+            }
+        }
+        Vector3 Normalized() const
+        {
+            return Normalize(*this);
+        }
+
+    public:
+        RType &operator[](int i)
+        {
+            return &x_[i];
+        }
+        const RType &operator[](int i) const
+        {
+            return &x_[i];
+        }
+
+    public:
         static Vector3 Lerp(const Vector3 &a, const Vector3 &b, RType t)
         {
             t = Vector3Util<RType>::Clamp(t, R_ZERO, R_ONE);
@@ -95,6 +167,50 @@ namespace mzx
                 current_velocity = (output - original_to) / delta_time;
             }
             return output;
+        }
+        static Vector3 Scale(const Vector3 &a, const Vector3 &b)
+        {
+            return Vector3(a.x_ * b.x_, a.y_ * b.y_, a.z_ * b.z_);
+        }
+        static Vector3 Cross(const Vector3 &lhs, const Vector3 &rhs)
+        {
+            return Vector3(lhs.y_ * rhs.z_ - lhs.z_ * rhs.y_, lhs.z_ * rhs.x_ - lhs.x_ * rhs.z_, lhs.x_ * rhs.y_ - lhs.y_ * rhs.x_);
+        }
+        static Vector3 Reflect(const Vector3 &in_direction, const Vector3 &in_normal)
+        {
+            auto factor = -R_TWO * Dot(in_normal, in_direction);
+            return Vector3(factor * in_normal.x + in_direction.x, factor * in_normal.y + in_direction.y, factor * in_normal.z + in_direction.z);
+        }
+        static Vector3 Normalize(const Vector3 &value)
+        {
+            auto mag = Magnitude(value);
+            if (mag > R_EPSILON)
+            {
+                return value / mag;
+            }
+            return Vector3(R_ZERO, R_ZERO, R_ZERO);
+        }
+        static RType Dot(const Vector3 &lhs, const Vector3 &rhs)
+        {
+            return lhs.x_ * rhs.x_ + lhs.y_ * rhs.y_ + lhs.z_ * rhs.z_;
+        }
+        static Vector3 Project(const Vector3 &vec, const Vector3 &on_normal)
+        {
+            auto sqr_mag = on_normal.SqrMagnitude();
+            if (sqr_mag > R_EPSILON)
+            {
+                return on_normal * Dot(vec, on_normal) / sqr_mag;
+            }
+            return Vector3(R_ZERO, R_ZERO, R_ZERO);
+        }
+        static Vector3 ProjectOnPlane(const Vector3 &vec, const Vector3 &plane_normal)
+        {
+            auto sqr_mag = plane_normal.SqrMagnitude();
+            if (sqr_mag > R_EPSILON)
+            {
+                return vec - plane_normal * Dot(vec, plane_normal) / sqr_mag;
+            }
+            return vec;
         }
 
     private:
