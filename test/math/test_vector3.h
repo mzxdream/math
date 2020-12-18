@@ -5,9 +5,9 @@ using namespace mzx;
 
 inline void TestVector3(int count)
 {
-    Vector3f a;
-    Vector3f b(1.0f, 1.2f, 1.0f);
-    Vector3f c(2.0f, 2.0f, 3.0f);
+    Vector3F a;
+    Vector3F b(1.0f, 1.2f, 1.0f);
+    Vector3F c(2.0f, 2.0f, 3.0f);
 
     a.SetX(1);
     a.SetY(2);
@@ -36,40 +36,40 @@ inline void TestVector3(int count)
     auto c1 = a == b;
     auto c2 = a != b;
 
-    a = Vector3f(1, 1, 1);
-    b = Vector3f(15, 15, 15);
-    auto p1 = Vector3f::Lerp(a, b, 0.5f);
-    auto p2 = Vector3f::LerpUnclamped(a, b, 2.0f);
-    auto p3 = Vector3f::MoveTowards(a, b, 3.0f);
-    auto cur_vel = Vector3f::One();
+    a = Vector3F(1, 1, 1);
+    b = Vector3F(15, 15, 15);
+    auto p1 = Vector3F::Lerp(a, b, 0.5f);
+    auto p2 = Vector3F::LerpUnclamped(a, b, 2.0f);
+    auto p3 = Vector3F::MoveTowards(a, b, 3.0f);
+    auto cur_vel = Vector3F::One();
     auto stime = 1.0f;
     auto speed = 1.0f;
     auto delta_time = 1.0f;
-    auto p4 = Vector3f::SmoothDamp(a, b, cur_vel, stime, speed, delta_time);
-    auto p5 = Vector3f::Scale(a, b);
-    auto p6 = Vector3f::Cross(a, b);
-    auto p7 = Vector3f::Reflect(a, b);
-    auto p8 = Vector3f::Normalize(b);
-    auto p9 = Vector3f::Dot(a, b);
-    auto p10 = Vector3f::Project(a, b);
-    auto p11 = Vector3f::ProjectOnPlane(a, b);
-    auto p12 = Vector3f::Angle(a, b);
-    auto p13 = Vector3f::SignedAngle(a, b, Vector3f::Up());
-    auto p14 = Vector3f::SqrDistance(a, b);
-    auto p15 = Vector3f::Distance(a, b);
-    auto p16 = Vector3f::ClampMagnitude(a, 10.0f);
-    auto p17 = Vector3f::SqrMagnitude(a);
-    auto p18 = Vector3f::Magnitude(a);
-    auto p19 = Vector3f::Min(a, b);
-    auto p20 = Vector3f::Max(a, b);
+    auto p4 = Vector3F::SmoothDamp(a, b, cur_vel, stime, speed, delta_time);
+    auto p5 = Vector3F::Scale(a, b);
+    auto p6 = Vector3F::Cross(a, b);
+    auto p7 = Vector3F::Reflect(a, b);
+    auto p8 = Vector3F::Normalize(b);
+    auto p9 = Vector3F::Dot(a, b);
+    auto p10 = Vector3F::Project(a, b);
+    auto p11 = Vector3F::ProjectOnPlane(a, b);
+    auto p12 = Vector3F::Angle(a, b);
+    auto p13 = Vector3F::SignedAngle(a, b, Vector3F::Up());
+    auto p14 = Vector3F::SqrDistance(a, b);
+    auto p15 = Vector3F::Distance(a, b);
+    auto p16 = Vector3F::ClampMagnitude(a, 10.0f);
+    auto p17 = Vector3F::SqrMagnitude(a);
+    auto p18 = Vector3F::Magnitude(a);
+    auto p19 = Vector3F::Min(a, b);
+    auto p20 = Vector3F::Max(a, b);
 
-    auto b1 = Vector3f::Zero();
-    auto b2 = Vector3f::One();
-    auto b3 = Vector3f::Forward();
-    auto b4 = Vector3f::Back();
-    auto b5 = Vector3f::Up();
-    auto b6 = Vector3f::Down();
-    auto b7 = Vector3f::Left();
-    auto b8 = Vector3f::Right();
+    auto b1 = Vector3F::Zero();
+    auto b2 = Vector3F::One();
+    auto b3 = Vector3F::Forward();
+    auto b4 = Vector3F::Back();
+    auto b5 = Vector3F::Up();
+    auto b6 = Vector3F::Down();
+    auto b7 = Vector3F::Left();
+    auto b8 = Vector3F::Right();
     auto b9 = b7 + b8;
 }
