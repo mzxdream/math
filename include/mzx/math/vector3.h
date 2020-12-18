@@ -649,7 +649,7 @@ namespace mzx
         }
         static float OverSqrt2()
         {
-            return sqrt(2.0f) / 2.0f;
+            return 0.7071067811865475244008443621048490f;
         }
         static float Epsilon()
         {
