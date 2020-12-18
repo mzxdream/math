@@ -238,38 +238,96 @@ namespace mzx
         }
         static Quaternion Inverse(const Quaternion &a)
         {
-            //TODO
-            return Quaternion();
+            return Quaternion(-a.x_, -a.y_, -a.z_, a.w_);
         }
         static Quaternion Slerp(const Quaternion &a, const Quaternion &b, const RType &t)
         {
-            //TODO
-            return Quaternion();
+            return SlerpUnclamped(a, b, RClamp(t, R_ZERO, R_ONE));
         }
         static Quaternion SlerpUnclamped(const Quaternion &a, const Quaternion &b, const RType &t)
         {
-            //TODO
-            return Quaternion();
+            Quaternion tmp;
+            auto dot = Dot(a, b);
+            if (dot < R_ZERO)
+            {
+                dot = -dot;
+                tmp = -b;
+            }
+            else
+            {
+                tmp = b;
+            }
+            if (dot < R_DOT95)
+            {
+                auto angle = MathUtil::Acos(dot);
+                auto sinadiv = R_ONE / MathUtil::Sin(angle);
+                auto sinat = MathUtil::Sin(angle * t);
+                auto sinaomt = MathUtil::Sin(angle * (R_ONE - t));
+                tmp.Set(
+                    (a.x_ * sinaomt + tmp.x_ * sinat) * sinadiv,
+                    (a.y_ * sinaomt + tmp.y_ * sinat) * sinadiv,
+                    (a.z_ * sinaomt + tmp.z_ * sinat) * sinadiv,
+                    (a.w_ * sinaomt + tmp.w_ * sinat) * sinadiv);
+                return tmp;
+            }
+            return LerpUnclamped(a, tmp, t);
         }
         static Quaternion Lerp(const Quaternion &a, const Quaternion &b, const RType &t)
         {
-            //TODO
-            return Quaternion();
+            return LerpUnclamped(a, b, RClamp(t, R_ZERO, R_ONE));
         }
         static Quaternion LerpUnclamped(const Quaternion &a, const Quaternion &b, const RType &t)
         {
-            //TODO
-            return Quaternion();
+            Quaternion tmp;
+            if (Dot(a, b) < R_ZERO)
+            {
+                tmp.Set(
+                    a.x_ + t * (-b.x_ - a.x_),
+                    a.y_ + t * (-b.y_ - a.y_),
+                    a.z_ + t * (-b.z_ - a.z_),
+                    a.w_ + t * (-b.w_ - a.w_)));
+            }
+            else
+            {
+                tmp.Set(
+                    a.x_ + t * (b.x - a.x_),
+                    a.y_ + t * (b.y - a.y_),
+                    a.z_ + t * (b.z - a.z_),
+                    a.w_ + t * (b.w - a.w_));
+            }
+            return Normalize(tmp);
         }
         static Quaternion AngleAxis(const RType &angle, const Vector3<RType> &axis)
         {
-            //TODO
-            return Quaternion();
+            auto angle_rad = MathUtil::Deg2Rad(angle);
+            auto mag = axis.Magnitude();
+            if (mag > R_EPSILON)
+            {
+                auto half_Angle = angle / R_TWO;
+                Quaternion q;
+                q.w = MathUtil::Cos(half_angle);
+                auto s = MathUtil::Sin(half_angle) / mag;
+                q.x = s * axis.x;
+                q.y = s * axis.y;
+                q.z = s * axis.z;
+                return q;
+            }
+            return Identity();
         }
         static Quaternion LookRotation(const Vector3<RType> &view, const Vector3<RType> &up)
         {
-            //TODO
-            return Quaternion();
+            auto q = Identity();
+            if (!LookRotationToQuaternion(view, up, &q))
+            {
+                auto mag = view.Magnitude();
+                if (mag > R_EPSILON)
+                {
+                    RType m[3][3];
+                    SetMatrix3x3FromToRotation(m, Vector3<RType>::Forward(), view / mag);
+                    Matrix3x3ToQuaternion(m, q);
+                }
+            }
+            return q;
         }
         static const Quaternion &Identity()
         {
@@ -306,7 +364,7 @@ namespace mzx
             //TODO
             return Vector3<RType>();
         }
-        static void ToAngleAxisRad(const Quaternion &a, RType *angle, Vector3<RType> *axis)
+        static void ToAngleRadAxis(const Quaternion &a, RType *angle, Vector3<RType> *axis)
         {
             //TODO
         }
