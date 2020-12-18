@@ -222,11 +222,19 @@ namespace mzx
             }
             return Quaternion(a.x_ / mag, a.y_ / mag, a.z_ / mag, a.w_ / mag);
         }
-
         static Quaternion FromToRotation(const Vector3<RType> &from, const Vector3<RType> &to)
         {
-            //TODO
-            return Quaternion();
+            auto from_mag = from.Magnitude();
+            auto to_mag = to.Magnitude();
+            if (from_mag < R_EPSILON || to_mag < R_EPSILON)
+            {
+                return Identity();
+            }
+            RType m[3][3];
+            SetMatrix3x3FromToRotation(m, from / from_mag, to / to_mag);
+            Quaternion q;
+            Matrix3x3ToQuaternion(m, q);
+            return q;
         }
         static Quaternion Inverse(const Quaternion &a)
         {
@@ -274,6 +282,20 @@ namespace mzx
         {
             return dot > R_ONE - R_EPSILON;
         }
+        static RType MakePosAngle(const RType &a)
+        {
+            static const RType NEG_FLIP = MathUtil::Rad2Deg(-R_FLIP);
+            static const RType POS_FLIP = R_360 - R_FLIP;
+            if (a < NEG_FLIP)
+            {
+                return a + R_360;
+            }
+            if (a > POS_FLIP)
+            {
+                return a - R_360;
+            }
+            return a;
+        }
         static Quaternion FromEulerRad(const Vector3<RType> &a)
         {
             //TODO
@@ -288,19 +310,88 @@ namespace mzx
         {
             //TODO
         }
-        static RType MakePosAngle(const RType &a)
+        static void SetMatrix3x3Indentity(RType matrix[3][3])
         {
-            static const RType NEG_FLIP = MathUtil::Rad2Deg(-R_FLIP);
-            static const RType POS_FLIP = R_360 - R_FLIP;
-            if (a < NEG_FLIP)
+            matrix[0][0] = R_ONE;
+            matrix[0][1] = R_ZERO;
+            matrix[0][2] = R_ZERO;
+            matrix[1][0] = R_ZERO;
+            matrix[1][1] = R_ONE;
+            matrix[1][2] = R_ZERO;
+            matrix[2][0] = R_ZERO;
+            matrix[2][1] = R_ZERO;
+            matrix[2][2] = R_ONE;
+        }
+        static void SetMatrix3x3FromToRotation(RType matrix[3][3], const Vector3 &from, const Vector3 &to)
+        {
+            auto v = Cross(from, to);
+            auto e = Dot(from, to);
+            if (e > R_ONE - R_EPSILON)
             {
-                return a + R_360;
+                SetMatrix3x3Indentity(m);
             }
-            if (a > POS_FLIP)
+            else if (e < -R_ONE + R_EPSILON)
             {
-                return a - R_360;
+                Vector3<RType> left(R_ZERO, from[2], -from[1]);
+                auto dot = Dot(left, left);
+                if (dot < R_EPSILON)
+                {
+                    left[0] = -from[2];
+                    left[1] = R_ZERO;
+                    left[2] = from[0];
+                }
+                left /= MathUtil::Sqrt(dot);
+                auto up = Cross(left, from);
+
+                auto fxx = -from[0] * from[0];
+                auto fyy = -from[1] * from[1];
+                auto fzz = -from[2] * from[2];
+                auto fxy = -from[0] * from[1];
+                auto fxz = -from[0] * from[2];
+                auto fyz = -from[1] * from[2];
+
+                auto uxx = up[0] * up[0];
+                auto uyy = up[1] * up[1];
+                auto uzz = up[2] * up[2];
+                auto uxy = up[0] * up[1];
+                auto uxz = up[0] * up[2];
+                auto uyz = up[1] * up[2];
+
+                auto lxx = -left[0] * left[0];
+                auto lyy = -left[1] * left[1];
+                auto lzz = -left[2] * left[2];
+                auto lxy = -left[0] * left[1];
+                auto lxz = -left[0] * left[2];
+                auto lyz = -left[1] * left[2];
+
+                matrix[0][0] = fxx + uxx + lxx;
+                matrix[0][1] = fxy + uxy + lxy;
+                matrix[0][2] = fxz + uxz + lxz;
+                matrix[1][0] = matrix[0][1];
+                matrix[1][1] = fyy + uyy + lyy;
+                matrix[1][2] = fyz + uyz + lyz;
+                matrix[2][0] = matrix[0][2];
+                matrix[2][1] = matrix[1][2];
+                matrix[2][2] = fzz + uzz + lzz;
             }
-            return a;
+            else
+            {
+                auto h = (R_ONE - e) / Dot(v, v);
+                auto hvx = h * v[0];
+                auto hvz = h * v[2];
+                auto hvxy = hvx * v[1];
+                auto hvxz = hvx * v[2];
+                auto hvyz = hvz * v[1];
+                matrix[0][0] = e + hvx * v[0];
+                matrix[0][1] = hvxy - v[2];
+                matrix[0][2] = hvxz + v[1];
+                matrix[1][0] = hvxy + v[2];
+                matrix[1][1] = e + h * v[1] * v[1];
+                matrix[1][2] = hvyz - v[0];
+                matrix[2][0] = hvxz - v[1];
+                matrix[2][1] = hvyz + v[0];
+                matrix[2][2] = e + hvz * v[2];
+            }
         }
         static RType RAbs(const RType &a)
         {
