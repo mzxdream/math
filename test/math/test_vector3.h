@@ -62,6 +62,11 @@ inline void TestVector3(int count)
     auto p18 = Vector3F::Magnitude(a);
     auto p19 = Vector3F::Min(a, b);
     auto p20 = Vector3F::Max(a, b);
+    auto p21 = Vector3F::Slerp(a, b, 2.0f);
+    auto p22 = Vector3F::SlerpUnclamped(a, b, 2.0f);
+    Vector3F::OrthoNormalize(&a, &b);
+    Vector3F::OrthoNormalize(&a, &b, &c);
+    auto p23 = Vector3F::RotateTowards(a, b, 2.0f, 2.0f);
 
     auto b1 = Vector3F::Zero();
     auto b2 = Vector3F::One();
