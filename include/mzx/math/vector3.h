@@ -472,7 +472,7 @@ namespace mzx
         }
     };
 
-    using Vector3f = Vector3<float>;
+    using Vector3F = Vector3<float>;
 } // namespace mzx
 
 #endif
