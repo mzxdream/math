@@ -368,6 +368,16 @@ namespace mzx
         {
             //TODO
         }
+        static bool LookRotationToQuaternion(const Vector3<RType> &view, const Vector3<RType> &up, Quaternion *res)
+        {
+            RType m[3][3];
+            if (!LookRotationToMatrix3x3(view, up, m))
+            {
+                return false;
+            }
+            Matrix3x3ToQuaternion(m, *res);
+            return true;
+        }
         static void SetMatrix3x3Indentity(RType matrix[3][3])
         {
             matrix[0][0] = R_ONE;
@@ -379,6 +389,18 @@ namespace mzx
             matrix[2][0] = R_ZERO;
             matrix[2][1] = R_ZERO;
             matrix[2][2] = R_ONE;
+        }
+        static void SetMatrix3xBasis(RType matrix[3][3], const Vector3<RType> &inx, const Vector3<RType> &iny, const Vector3<RType> &inz)
+        {
+            matrix[0][0] = inx[0];
+            matrix[0][1] = iny[0];
+            matrix[0][2] = inz[0];
+            matrix[1][0] = inx[1];
+            matrix[1][1] = iny[1];
+            matrix[1][2] = inz[1];
+            matrix[2][0] = inx[2];
+            matrix[2][1] = iny[2];
+            matrix[2][2] = inz[2];
         }
         static void SetMatrix3x3FromToRotation(RType matrix[3][3], const Vector3 &from, const Vector3 &to)
         {
@@ -487,6 +509,35 @@ namespace mzx
                 *apk_quat[k] = (matrix[k][i] + matrix[i][k]) * r;
             }
             q = Normalize(q);
+        }
+        static bool LookRotationToMatrix3x3(RType matrix[3][3], const Vector3<RType> &view, const Vector3<RType> &up)
+        {
+            auto z = view;
+
+            float mag = z.Magnitude();
+            if (mag < R_EPSILON)
+            {
+                SetMatrix3x3Identity(matrix);
+                return false;
+            }
+            z /= mag;
+
+            auto x = Cross(up, z);
+            mag = x.Magnitude();
+            if (mag < R_EPSILON)
+            {
+                SetMatrix3x3Identity(matrix);
+                return false;
+            }
+            x /= mag;
+
+            auto y = Cross(z, x);
+            if (RAbs(y.SqrMagnitude() - R_ONE) > R_EPSILON)
+            {
+                return false;
+            }
+            m->SetBasis(x, y, z);
+            return true;
         }
         static RType RAbs(const RType &a)
         {
