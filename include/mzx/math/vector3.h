@@ -439,6 +439,42 @@ namespace mzx
         }
         static Vector3 RotateTowards(const Vector3 &current, const Vector3 &target, const RType &max_radians, const RType &max_magnitude)
         {
+            const auto &lhs = current;
+            const auto &rhs = target;
+
+            auto lhs_mag = Magnitude(lhs);
+            auto rhs_mag = Magnitude(rhs);
+            if (lhs_mag > R_EPSILON && rhs_mag > R_EPSILON)
+            {
+                auto lhs_norm = lhs / lhs_mag;
+                auto rhs_norm = rhs / rhs_mag;
+
+                auto dot = Dot(lhs_norm, rhs_norm);
+                if (dot > R_ONE - R_EPSILON)
+                {
+                    return MoveTowards(lhs, rhs, max_magnitude);
+                }
+                else if (dot < -R_ONE + R_EPSILON)
+                {
+                    auto axis = OrthoNormalVectorFast(lhs_norm);
+                    RType m[3][3];
+                    SetMatrix3x3AngleAxis(m, max_radians, axis);
+                    auto rotated = Matrix3x3MultiVec3(m, lhs_norm);
+                    rotated *= ClampedMove(lhs_mag, rhs_mag, max_magnitude);
+                    return rotated;
+                }
+                else
+                {
+                    auto angle = MathUtil::Acos(dot);
+                    auto axis = Normalize(Cross(lhs_norm, rhs_norm));
+                    RType m[3][3];
+                    SetMatrix3x3AngleAxis(m, RMin(max_radians, angle), axis);
+                    auto rotated = Matrix3x3MultiVec3(m, lhs_norm);
+                    rotated *= ClampedMove(lhs_mag, rhs_mag, max_magnitude);
+                    return rotated;
+                }
+            }
+            return MoveTowards(lhs, rhs, max_magnitude);
         }
         static const Vector3 &Zero()
         {
@@ -543,6 +579,15 @@ namespace mzx
             dot0 = Dot(*in_u, *in_w);
             *in_w -= dot0 * (*in_u) + dot1 * (*in_v);
             *in_w = Normalize(*in_w);
+        }
+        static RType ClampedMove(const RType &lhs, const RType &rhs, const RType &clamped_delta)
+        {
+            auto delta = rhs - lhs;
+            if (delta > R_ZERO)
+            {
+                return lhs + RMin(delta, clamped_delta);
+            }
+            return lhs - RMin(-delta, clamped_delta);
         }
         static RType RAbs(const RType &a)
         {
