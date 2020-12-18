@@ -24,6 +24,8 @@ namespace mzx
         static RType Sqrt(const RType &a);
         static RType Rad2Deg(const RType &a);
         static RType Deg2Rad(const RType &a);
+        static RType Sin(const RType &a);
+        static RType Cos(const RType &a);
         static RType Acos(const RType &a);
     };
 
@@ -123,7 +125,7 @@ namespace mzx
         }
         const RType &operator[](int i) const
         {
-            return &x_[i];
+            return (&x_)[i];
         }
         Vector3 operator+(const Vector3 &a) const
         {
@@ -179,7 +181,7 @@ namespace mzx
         }
         bool operator==(const Vector3 &a) const
         {
-            return SqrDistance(*this, a) <= R_SQR_EPSILON;
+            return SqrDistance(*this, a) < R_SQR_EPSILON;
         }
         bool operator!=(const Vector3 &a) const
         {
@@ -347,7 +349,7 @@ namespace mzx
             {
                 return Lerp(lhs, rhs, t);
             }
-            auto lerped_magnitude = Lerp(lhs_mag, rhs_mag, t);
+            auto lerped_magnitude = RLerp(lhs_mag, rhs_mag, t);
             auto dot = Dot(lhs, rhs) / (lhs_mag * rhs_mag);
             if (dot > R_ONE - R_EPSILON)
             {
@@ -520,13 +522,13 @@ namespace mzx
     private:
         static Vector3 OrthoNormalVectorFast(const Vector3 &n)
         {
-            if (RAbs(n.z) > R_OVER_SQRT2)
+            if (RAbs(n.z_) > R_OVER_SQRT2)
             {
                 auto k = MathUtil::Sqrt(n.y_ * n.y_ + n.z_ * n.z_);
                 return Vector3(R_ZERO, -n.z_ / k, n.y_ / k);
             }
             auto k = MathUtil::Sqrt(n.x_ * n.x_ + n.y_ * n.y_);
-            return Vector3(-n.y / k, n.x / k, R_ZERO);
+            return Vector3(-n.y_ / k, n.x_ / k, R_ZERO);
         }
         static void SetMatrix3x3AngleAxis(RType matrix[3][3], const RType &angle_rad, const Vector3 &axis)
         {
@@ -605,6 +607,10 @@ namespace mzx
         {
             return t < mint ? mint : (t > maxt ? maxt : t);
         }
+        static RType RLerp(const RType &a, const RType &b, const RType &t)
+        {
+            return a + (b - a) * t;
+        }
 
     private:
         RType x_;
@@ -614,6 +620,8 @@ namespace mzx
 
     template <typename T>
     const typename Vector3<T>::RType Vector3<T>::R_PI = Vector3<T>::MathUtil::PI();
+    template <typename T>
+    const typename Vector3<T>::RType Vector3<T>::R_OVER_SQRT2 = Vector3<T>::MathUtil::OverSqrt2();
     template <typename T>
     const typename Vector3<T>::RType Vector3<T>::R_EPSILON = Vector3<T>::MathUtil::Epsilon();
     template <typename T>
@@ -638,6 +646,10 @@ namespace mzx
         static float PI()
         {
             return 3.14159265358979323846f;
+        }
+        static float OverSqrt2()
+        {
+            return sqrt(2.0f) / 2.0f;
         }
         static float Epsilon()
         {
@@ -678,6 +690,14 @@ namespace mzx
         static float Deg2Rad(const float &a)
         {
             return a * PI() / 180.0f;
+        }
+        static float Sin(const float &a)
+        {
+            return sin(a);
+        }
+        static float Cos(const float &a)
+        {
+            return cos(a);
         }
         static float Acos(const float &a)
         {
