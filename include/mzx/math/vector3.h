@@ -346,43 +346,43 @@ namespace mzx
         }
         static const Vector3 &Zero()
         {
-            static const Vector3 zero(R_ZERO, R_ZERO, R_ZERO);
-            return zero;
+            static const Vector3 a(R_ZERO, R_ZERO, R_ZERO);
+            return a;
         }
         static const Vector3 &One()
         {
-            static const Vector3 one(R_ONE, R_ONE, R_ONE);
-            return one;
+            static const Vector3 a(R_ONE, R_ONE, R_ONE);
+            return a;
         }
         static const Vector3 &Forward()
         {
-            static const Vector3 forward(R_ZERO, R_ZERO, R_ONE);
-            return forward;
+            static const Vector3 a(R_ZERO, R_ZERO, R_ONE);
+            return a;
         }
         static const Vector3 &Back()
         {
-            static const Vector3 back(R_ZERO, R_ZERO, -R_ONE);
-            return back;
+            static const Vector3 a(R_ZERO, R_ZERO, -R_ONE);
+            return a;
         }
         static const Vector3 &Up()
         {
-            static const Vector3 up(R_ZERO, R_ONE, R_ZERO);
-            return up;
+            static const Vector3 a(R_ZERO, R_ONE, R_ZERO);
+            return a;
         }
         static const Vector3 &Down()
         {
-            static const Vector3 down(R_ZERO, -R_ONE, R_ZERO);
-            return down;
+            static const Vector3 a(R_ZERO, -R_ONE, R_ZERO);
+            return a;
         }
         static const Vector3 &Left()
         {
-            static const Vector3 left(-R_ONE, R_ZERO, R_ZERO);
-            return left;
+            static const Vector3 a(-R_ONE, R_ZERO, R_ZERO);
+            return a;
         }
         static const Vector3 &Right()
         {
-            static const Vector3 right(R_ONE, R_ZERO, R_ZERO);
-            return right;
+            static const Vector3 a(R_ONE, R_ZERO, R_ZERO);
+            return a;
         }
 
     private:

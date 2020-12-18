@@ -97,6 +97,12 @@ namespace mzx
         }
 
     public:
+        static const Quaternion &Identity()
+        {
+            static const Quaternion a(R_ZERO, R_ZERO, R_ZERO, R_ONE);
+            return a;
+        }
+
     private:
         RType x_;
         RType y_;
