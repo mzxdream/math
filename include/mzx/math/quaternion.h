@@ -15,7 +15,8 @@ namespace mzx
     public:
         static RType Epsilon();
         static RType Acos(const RType &a);
-        static RType Rad2Deg(const RType &a);
+        static RType Rad2Deg(const RType &rad);
+        static RType Deg2Rad(const RType &deg);
     };
 
     template <typename T>
