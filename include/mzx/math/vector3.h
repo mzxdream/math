@@ -13,6 +13,7 @@ namespace mzx
 
     public:
         static RType PI();
+        static RType OverSqrt2(); //sqrt2/2
         static RType Epsilon();
         static RType Zero();
         static RType One();
@@ -35,6 +36,7 @@ namespace mzx
 
     private:
         static const RType R_PI;
+        static const RType R_OVER_SQRT2;
         static const RType R_EPSILON;
         static const RType R_SQR_EPSILON;
         static const RType R_ZERO;
@@ -356,8 +358,8 @@ namespace mzx
                 auto lhs_norm = lhs / lhs_mag;
                 auto axis = OrthoNormalVectorFast(lhs_norm);
                 RType m[3][3];
-                m.SetAxisAngle(axis, R_PI * t);
-                auto slerped = m.MultiplyPoint3(lhs_norm);
+                SetMatrix3x3AngleAxis(m, R_PI * t, axis);
+                auto slerped = Matrix3x3MultiVec3(m, lhs_norm);
                 slerped *= lerped_magnitude;
                 return slerped;
             }
@@ -368,8 +370,8 @@ namespace mzx
                 axis = Normalize(axis);
                 auto angle = MathUtil::Acos(dot) * t;
                 RType m[3][3];
-                m.SetAxisAngle(axis, angle);
-                auto slerped = m.MultiplyPoint3(lhs_norm);
+                SetMatrix3x3AngleAxis(m, angle, axis);
+                auto slerped = Matrix3x3MultiVec3(m, lhs_norm);
                 slerped *= lerped_magnitude;
                 return slerped;
             }
@@ -425,6 +427,59 @@ namespace mzx
         }
 
     private:
+        static Vector3 OrthoNormalVectorFast(const Vector3 &n)
+        {
+            if (RAbs(n.z) > R_OVER_SQRT2)
+            {
+                auto k = MathUtil::Sqrt(n.y_ * n.y_ + n.z_ * n.z_);
+                return Vector3(R_ZERO, -n.z_ / k, n.y_ / k);
+            }
+            auto k = MathUtil::Sqrt(n.x_ * n.x_ + n.y_ * n.y_);
+            return Vector3(-n.y / k, n.x / k, R_ZERO);
+        }
+        static void SetMatrix3x3AngleAxis(RType matrix[3][3], const RType &angle_rad, const Vector3 &axis)
+        {
+            auto s = MathUtil::Sin(angle_rad);
+            auto c = MathUtil::Cos(angle_rad);
+
+            const auto &vx = axis[0];
+            const auto &vy = axis[1];
+            const auto &vz = axis[2];
+
+            auto xx = vx * vx;
+            auto yy = vy * vy;
+            auto zz = vz * vz;
+            auto xy = vx * vy;
+            auto yz = vy * vz;
+            auto zx = vz * vx;
+            auto xs = vx * s;
+            auto ys = vy * s;
+            auto zs = vz * s;
+            auto one_c = R_ONE - c;
+
+            matrix[0][0] = (one_c * xx) + c;
+            matrix[1][0] = (one_c * xy) - zs;
+            matrix[2][0] = (one_c * zx) + ys;
+
+            matrix[0][1] = (one_c * xy) + zs;
+            matrix[1][1] = (one_c * yy) + c;
+            matrix[2][1] = (one_c * yz) - xs;
+
+            matrix[0][2] = (one_c * zx) - ys;
+            matrix[1][2] = (one_c * yz) + xs;
+            matrix[2][2] = (one_c * zz) + c;
+        }
+        static Vector3 Matrix3x3MultiVec3(const RType matrix[3][3], const Vector3 &vec3)
+        {
+            return Vector3(
+                matrix[0][0] * vec3.x_ + matrix[1][0] * vec3.y_ + matrix[2][0] * vec3.z_,
+                matrix[0][1] * vec3.x_ + matrix[1][1] * vec3.y_ + matrix[2][1] * vec3.z_,
+                matrix[0][2] * vec3.x_ + matrix[1][2] * vec3.y_ + matrix[2][2] * vec3.z_);
+        }
+        static RType RAbs(const RType &a)
+        {
+            return a >= R_ZERO ? a : -a;
+        }
         static RType RMin(const RType &a, const RType &b)
         {
             return a < b ? a : b;
