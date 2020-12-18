@@ -428,7 +428,7 @@ namespace mzx
     public:
         static float Epsilon()
         {
-            return 1e-5f;
+            return 1e-6f;
         }
         static float Zero()
         {
