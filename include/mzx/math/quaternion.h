@@ -393,6 +393,43 @@ namespace mzx
                 matrix[2][2] = e + hvz * v[2];
             }
         }
+        static void Matrix3x3ToQuaternion(RType matrix[3][3], Quaternion &q)
+        {
+            auto t = matrix[0][0] + matrix[1][1] + matrix[2][2];
+            if (t > R_ZERO)
+            {
+                auto r = MathUtil::Sqrt(t + R_ONE);
+                q.w = r / R_TWO;
+                r = R_ONE / (R_TWO * r);
+                q.x = (matrix[2][1] - matrix[1][2]) * r;
+                q.y = (matrix[0][2] - matrix[2][0]) * r;
+                q.z = (matrix[1][0] - matrix[0][1]) * r;
+            }
+            else
+            {
+                static const int inext[3] = {1, 2, 0};
+                int i = 0;
+                if (matrix[1][1] > matrix[0][0])
+                {
+                    i = 1;
+                }
+                if (matrix[2][2] > matrix[i][i])
+                {
+                    i = 2;
+                }
+                auto j = inext[i];
+                auto k = inext[j];
+
+                auto r = MathUtil::Sqrt(matrix[i][i] - matrix[j][j] - matrix[k][k] + R_ONE);
+                auto *apk_quat[3] = {&q.x, &q.y, &q.z};
+                *apk_quat[i] = r / TWO;
+                r = R_ONE / (R_TWO * r);
+                q.w = (matrix[k][j] - matrix[j][k]) * r;
+                *apk_quat[j] = (matrix[j][i] + matrix[i][j]) * r;
+                *apk_quat[k] = (matrix[k][i] + matrix[i][k]) * r;
+            }
+            q = Normalize(q);
+        }
         static RType RAbs(const RType &a)
         {
             return a >= R_ZERO ? a : -a;
