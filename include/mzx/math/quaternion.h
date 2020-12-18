@@ -43,6 +43,58 @@ namespace mzx
         {
             return x_;
         }
+        void SetX(const RType &x)
+        {
+            x_ = x;
+        }
+        const RType &Y() const
+        {
+            return y_;
+        }
+        void SetY(const RType &y)
+        {
+            y_ = y;
+        }
+        const RType &Z() const
+        {
+            return z_;
+        }
+        void SetZ(const RType &z)
+        {
+            z_ = z;
+        }
+        const RType &W() const
+        {
+            return w_;
+        }
+        void SetW(const RType &w)
+        {
+            w_ = w;
+        }
+        void Set(const RType &x, const RType &y, const RType &z, const RType &w)
+        {
+            x_ = x;
+            y_ = y;
+            z_ = z;
+            w_ = w;
+        }
+        void Set(const RType *arr)
+        {
+            x_ = arr[0];
+            y_ = arr[1];
+            z_ = arr[2];
+            w_ = arr[3];
+        }
+
+    public:
+        RType &operator[](int i)
+        {
+            return (&x_)[i];
+        }
+        const RType &operator[](int i) const
+        {
+            return &x_[i];
+        }
 
     public:
     private:
