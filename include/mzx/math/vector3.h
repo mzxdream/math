@@ -12,6 +12,7 @@ namespace mzx
         using RType = T;
 
     public:
+        static RType PI();
         static RType Epsilon();
         static RType Zero();
         static RType One();
@@ -33,6 +34,7 @@ namespace mzx
         using MathUtil = Vector3MathUtil<RType>;
 
     private:
+        static const RType R_PI;
         static const RType R_EPSILON;
         static const RType R_SQR_EPSILON;
         static const RType R_ZERO;
@@ -331,13 +333,46 @@ namespace mzx
         {
             return Vector3(RMax(lhs.x_, rhs.x_), RMax(lhs.y_, rhs.y_), RMax(lhs.z_, rhs.z_));
         }
-        static Vector3 Slerp(const Vector3 &a, const Vector3 &b, const RType &t)
+        static Vector3 Slerp(const Vector3 &lhs, const Vector3 &rhs, const RType &t)
         {
-            return SlerpUnclamped(a, b, RClamp(t, R_ZERO, R_ONE));
+            return SlerpUnclamped(lhs, rhs, RClamp(t, R_ZERO, R_ONE));
         }
-        static Vector3 SlerpUnclamped(const Vector3 &a, const Vector3 &b, const RType &t)
+        static Vector3 SlerpUnclamped(const Vector3 &lhs, const Vector3 &rhs, const RType &t)
         {
-
+            auto lhs_mag = Magnitude(lhs);
+            auto rhs_mag = Magnitude(rhs);
+            if (lhs_mag < R_EPSILON || rhs_mag < R_EPSILON)
+            {
+                return Lerp(lhs, rhs, t);
+            }
+            auto lerped_magnitude = Lerp(lhs_mag, rhs_mag, t);
+            auto dot = Dot(lhs, rhs) / (lhs_mag * rhs_mag);
+            if (dot > R_ONE - R_EPSILON)
+            {
+                return Lerp(lhs, rhs, t);
+            }
+            else if (dot < -R_ONE + R_EPSILON)
+            {
+                auto lhs_norm = lhs / lhs_mag;
+                auto axis = OrthoNormalVectorFast(lhs_norm);
+                RType m[3][3];
+                m.SetAxisAngle(axis, R_PI * t);
+                auto slerped = m.MultiplyPoint3(lhs_norm);
+                slerped *= lerped_magnitude;
+                return slerped;
+            }
+            else
+            {
+                auto axis = Cross(lhs, rhs);
+                auto lhs_norm = lhs / lhs_mag;
+                axis = Normalize(axis);
+                auto angle = MathUtil::Acos(dot) * t;
+                RType m[3][3];
+                m.SetAxisAngle(axis, angle);
+                auto slerped = m.MultiplyPoint3(lhs_norm);
+                slerped *= lerped_magnitude;
+                return slerped;
+            }
         }
         static void OrthoNormalize(Vector3 &normal, Vector3 &tangent)
         {
@@ -410,6 +445,8 @@ namespace mzx
     };
 
     template <typename T>
+    const typename Vector3<T>::RType Vector3<T>::R_PI = Vector3<T>::MathUtil::PI();
+    template <typename T>
     const typename Vector3<T>::RType Vector3<T>::R_EPSILON = Vector3<T>::MathUtil::Epsilon();
     template <typename T>
     const typename Vector3<T>::RType Vector3<T>::R_SQR_EPSILON = Vector3<T>::MathUtil::Epsilon() * Vector3<T>::MathUtil::Epsilon();
@@ -430,6 +467,10 @@ namespace mzx
     class Vector3MathUtil<float>
     {
     public:
+        static float PI()
+        {
+            return 3.14159265358979323846f;
+        }
         static float Epsilon()
         {
             return 1e-6f;
@@ -464,11 +505,11 @@ namespace mzx
         }
         static float Rad2Deg(const float &a)
         {
-            return a * 180.0f / 3.14159265358979323846f;
+            return a * 180.0f / PI();
         }
         static float Deg2Rad(const float &a)
         {
-            return a * 3.14159265358979323846f / 180.0f;
+            return a * PI() / 180.0f;
         }
         static float Acos(const float &a)
         {
