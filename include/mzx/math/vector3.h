@@ -97,19 +97,7 @@ namespace mzx
         }
         void Normalize()
         {
-            auto mag = Magnitude(*this);
-            if (mag > R_EPSILON)
-            {
-                x_ /= mag;
-                y_ /= mag;
-                z_ /= mag;
-            }
-            else
-            {
-                x_ = R_ZERO;
-                y_ = R_ZERO;
-                z_ = R_ZERO;
-            }
+            *this = Normalize(*this);
         }
         Vector3 Normalized() const
         {
@@ -197,8 +185,7 @@ namespace mzx
     public:
         static Vector3 Lerp(const Vector3 &a, const Vector3 &b, const RType &t)
         {
-            auto s = RClamp(t, R_ZERO, R_ONE);
-            return Vector3(a.x_ + (b.x_ - a.x_) * s, a.y_ + (b.y_ - a.y_) * s, a.z_ + (b.z_ - a.z_) * s);
+            return LerpUnclamped(a, b, RClamp(t, R_ZERO, R_ONE));
         }
         static Vector3 LerpUnclamped(const Vector3 &a, const Vector3 &b, const RType &t)
         {
@@ -343,6 +330,23 @@ namespace mzx
         static Vector3 Max(const Vector3 &lhs, const Vector3 &rhs)
         {
             return Vector3(RMax(lhs.x_, rhs.x_), RMax(lhs.y_, rhs.y_), RMax(lhs.z_, rhs.z_));
+        }
+        static Vector3 Slerp(const Vector3 &a, const Vector3 &b, const RType &t)
+        {
+            return SlerpUnclamped(a, b, RClamp(t, R_ZERO, R_ONE));
+        }
+        static Vector3 SlerpUnclamped(const Vector3 &a, const Vector3 &b, const RType &t)
+        {
+
+        }
+        static void OrthoNormalize(Vector3 &normal, Vector3 &tangent)
+        {
+        }
+        static void OrthoNormalize(Vector3 &normal, Vector3 &tangent, Vector3 &binormal)
+        {
+        }
+        static Vector3 RotateTowards(const Vector3 &current, const Vector3 &target, const RType &max_radians, const RType &max_magnitude)
+        {
         }
         static const Vector3 &Zero()
         {
