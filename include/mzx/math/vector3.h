@@ -376,11 +376,66 @@ namespace mzx
                 return slerped;
             }
         }
-        static void OrthoNormalize(Vector3 &normal, Vector3 &tangent)
+        static void OrthoNormalize(Vector3 *in_u, Vector3 *in_v)
         {
+            auto mag = Magnitude(*in_u);
+            if (mag > R_EPSILON)
+            {
+                *in_u /= mag;
+            }
+            else
+            {
+                *in_u = Vector3(R_ONE, R_ZERO, R_ZERO);
+            }
+
+            auto dot0 = Dot(*in_u, *in_v);
+            *in_v -= dot0 * (*in_u);
+            mag = Magnitude(*in_v);
+            if (mag > R_EPSILON)
+            {
+                *in_v /= mag;
+            }
+            else
+            {
+                *in_v = OrthoNormalVectorFast(*in_u);
+            }
         }
-        static void OrthoNormalize(Vector3 &normal, Vector3 &tangent, Vector3 &binormal)
+        static void OrthoNormalize(Vector3 *in_u, Vector3 *in_v, Vector3 *in_w)
         {
+            auto mag = Magnitude(*in_u);
+            if (mag > R_EPSILON)
+            {
+                *in_u /= mag;
+            }
+            else
+            {
+                *in_u = Vector3(R_ONE, R_ZERO, R_ZERO);
+            }
+
+            auto dot0 = Dot(*in_u, *in_v);
+            *in_v -= dot0 * (*in_u);
+            mag = Magnitude(*in_v);
+            if (mag > R_EPSILON)
+            {
+                *in_v /= mag;
+            }
+            else
+            {
+                *in_v = OrthoNormalVectorFast(*in_u);
+            }
+
+            auto dot1 = Dot(*in_v, *in_w);
+            dot0 = Dot(*in_u, *in_w);
+            *in_w -= dot0 * (*in_u) + dot1 * (*in_v);
+            mag = Magnitude(*in_w);
+            if (mag > R_EPSILON)
+            {
+                *in_w /= mag;
+            }
+            else
+            {
+                *in_w = Cross(*in_u, *in_v);
+            }
         }
         static Vector3 RotateTowards(const Vector3 &current, const Vector3 &target, const RType &max_radians, const RType &max_magnitude)
         {
@@ -475,6 +530,19 @@ namespace mzx
                 matrix[0][0] * vec3.x_ + matrix[1][0] * vec3.y_ + matrix[2][0] * vec3.z_,
                 matrix[0][1] * vec3.x_ + matrix[1][1] * vec3.y_ + matrix[2][1] * vec3.z_,
                 matrix[0][2] * vec3.x_ + matrix[1][2] * vec3.y_ + matrix[2][2] * vec3.z_);
+        }
+        static void OrthoNormalizeFast(Vector3 *in_u, Vector3 *in_v, Vector3 *in_w)
+        {
+            *in_u = Normalize(*in_u);
+
+            auto dot0 = Dot(*in_u, *in_v);
+            *in_v -= dot0 * (*in_u);
+            *in_v = Normalize(*in_v);
+
+            auto dot1 = Dot(*in_v, *in_w);
+            dot0 = Dot(*in_u, *in_w);
+            *in_w -= dot0 * (*in_u) + dot1 * (*in_v);
+            *in_w = Normalize(*in_w);
         }
         static RType RAbs(const RType &a)
         {
