@@ -36,3 +36,4 @@
 *.vcxproj.user
 build/
 *.log
+/.vscode/settings.json
