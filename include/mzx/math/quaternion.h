@@ -114,11 +114,23 @@ namespace mzx
         }
         void ToAngleAxis(RType *angle, Vector3<RType> *axis)
         {
-            ToAxisAngleRad(*this, axis, angle);
+            ToAngleAxisRad(*this, angle, axis);
             if (angle != nullptr)
             {
                 *angle = MathUtil::Rad2Deg(*angle);
             }
+        }
+        void SetFromToRotation(const Vector3 &from, const Vector3 &to)
+        {
+            *this = FromToRotation(from, to);
+        }
+        void Normalize()
+        {
+            *this = Normalize(*this);
+        }
+        Quaternion Normalized() const
+        {
+            return Normalize(*this);
         }
 
     public:
@@ -192,7 +204,65 @@ namespace mzx
         {
             return Euler(euler.X(), euler.Y(), euler.Z());
         }
+        static Quaternion RotateTowards(const Quaternion &from, const Quaternion &to, const RType &max_degrees)
+        {
+            auto angle = Angle(from, to);
+            if (angle <= R_EPSILON)
+            {
+                return to;
+            }
+            return SlerpUnclamped(from, to, RMin(R_ONE, max_degrees / angle));
+        }
+        static Quaternion Normalize(const Quaternion &a)
+        {
+            auto mag = MathUtil::Sqrt(Dot(a, a));
+            if (mag <= R_EPSILON)
+            {
+                return Identity();
+            }
+            return Quaternion(a.x_ / mag, a.y_ / mag, a.z_ / mag, a.w_ / mag);
+        }
 
+        static Quaternion FromToRotation(const Vector3<RType> &from, const Vector3<RType> &to)
+        {
+            //TODO
+            return Quaternion();
+        }
+        static Quaternion Inverse(const Quaternion &a)
+        {
+            //TODO
+            return Quaternion();
+        }
+        static Quaternion Slerp(const Quaternion &a, const Quaternion &b, const RType &t)
+        {
+            //TODO
+            return Quaternion();
+        }
+        static Quaternion SlerpUnclamped(const Quaternion &a, const Quaternion &b, const RType &t)
+        {
+            //TODO
+            return Quaternion();
+        }
+        static Quaternion Lerp(const Quaternion &a, const Quaternion &b, const RType &t)
+        {
+            //TODO
+            return Quaternion();
+        }
+        static Quaternion LerpUnclamped(const Quaternion &a, const Quaternion &b, const RType &t)
+        {
+            //TODO
+            return Quaternion();
+        }
+        static Quaternion AngleAxis(const RType &angle, const Vector3<RType> &axis)
+        {
+            //TODO
+            return Quaternion();
+        }
+        static Quaternion LookRotation(const Vector3<RType> &view, const Vector3<RType> &up)
+        {
+            //TODO
+            return Quaternion();
+        }
         static const Quaternion &Identity()
         {
             static const Quaternion a(R_ZERO, R_ZERO, R_ZERO, R_ONE);
@@ -204,7 +274,7 @@ namespace mzx
         {
             return dot > R_ONE - R_EPSILON;
         }
-        static Quaternion LookRotation(const Vector3<RType> &view, const Vector3<RType> &up)
+        static Quaternion FromEulerRad(const Vector3<RType> &a)
         {
             //TODO
             return Quaternion();
@@ -214,13 +284,9 @@ namespace mzx
             //TODO
             return Vector3<RType>();
         }
-        static Quaternion FromEulerRad(const Vector3<RType> &a)
+        static void ToAngleAxisRad(const Quaternion &a, RType *angle, Vector3<RType> *axis)
         {
             //TODO
-            return Quaternion();
-        }
-        static void ToAxisAngleRad(const Quaternion &a, Vector3<RType> *axis, RType *angle)
-        {
         }
         static RType MakePosAngle(const RType &a)
         {
