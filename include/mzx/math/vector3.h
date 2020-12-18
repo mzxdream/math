@@ -53,7 +53,7 @@ namespace mzx
         }
 
     public:
-        T X() const
+        const RType &X() const
         {
             return x_;
         }
@@ -61,7 +61,7 @@ namespace mzx
         {
             x_ = x;
         }
-        T Y() const
+        const RType &Y() const
         {
             return y_;
         }
@@ -69,7 +69,7 @@ namespace mzx
         {
             y_ = y;
         }
-        T Z() const
+        const RType &Z() const
         {
             return z_;
         }
