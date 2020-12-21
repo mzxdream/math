@@ -23,46 +23,83 @@ namespace mzx
     template <>
     class QuaternionMathUtil<float>
     {
+    private:
+        static constexpr float EPSILON = 0.000001f;
+        static constexpr float MATH_PI = 3.1415926535897931f;
+        static constexpr float MATH_E = 2.7182818284590451f;
+
     public:
-        static float ParseFrom(int a)
+        static float Epsilon()
+        {
+            return EPSILON;
+        }
+        static float PI()
+        {
+            return MATH_PI;
+        }
+        static float ConvertTo(int a)
         {
             return static_cast<float>(a);
         }
-        static float ParseFrom(int numerator, int denominator)
+        static float ConvertTo(int numerator, int denominator)
         {
             return static_cast<float>(numerator) / denominator;
         }
         static float CompareApproximately(const float &a, const float &b)
         {
-            return abs(a - b) <= 0.000001f;
+            return abs(a - b) <= EPSILON;
         }
         static float Abs(const float &a)
         {
-            return a >= 0 ? a : -a;
+            return abs(a);
         }
         static float Clamp(const float &a, const float &mina, const float &maxa)
         {
-            return a < mina ? mina : (a > maxa ? maxa : a);
+            return std::min(std::max(a, mina), maxa);
         }
         static float Min(const float &a, const float &b)
         {
-            return a < b ? a : b;
+            return std::min(a, b);
         }
         static float Max(const float &a, const float &b)
         {
-            return a > b ? a : b;
+            return std::max(a, b);
+        }
+        static float Sqrt(const float &a)
+        {
+            return sqrt(a);
+        }
+        static float Cos(const float &a)
+        {
+            return cos(a);
+        }
+        static float Sin(const float &a)
+        {
+            return sin(a);
         }
         static float Acos(const float &a)
         {
             return acos(a);
         }
+        static float Asin(const float &a)
+        {
+            return asin(a);
+        }
+        static float Atan(const float &a)
+        {
+            return atan(a);
+        }
+        static float Atan2(const float &b, const float &a)
+        {
+            return atan2(b, a);
+        }
         static float Rad2Deg(const float &rad)
         {
-            return rad * 180.0f / 3.141592653f;
+            return rad * 180.0f / MATH_PI;
         }
         static float Deg2Rad(const float &deg)
         {
-            return deg * 3.141592653f / 180.0f;
+            return deg * MATH_PI / 180.0f;
         }
     };
 
@@ -552,7 +589,7 @@ namespace mzx
             }
             else
             {
-                auto h = (R_ONE - e) / Dot(v, v);
+                auto h = (R_ONE - e) / Vector3<RType>::Dot(v, v);
 
                 auto hvx = h * v[0];
                 auto hvz = h * v[2];
