@@ -34,6 +34,7 @@ namespace mzx
         static const RType R_ONE;  //1
         static const RType R_TWO;  //2
         static const RType R_360;  //360
+        static const RType R_SINGULARITY_TEST;
 
     public:
         Quaternion()
@@ -356,17 +357,65 @@ namespace mzx
         }
         static Quaternion FromEulerRad(const Vector3<RType> &a)
         {
-            //TODO
-            return Quaternion();
+            auto x = a.x_ / R_TWO;
+            auto y = a.y_ / R_TWO;
+            auto z = a.z_ / R_TWO;
+
+            auto cosx = MathUtil::Cos(x);
+            auto sinx = MathUtil::Sin(x);
+            auto cosy = MathUtil::Cos(y);
+            auto siny = MathUtil::Sin(y);
+            auto cosz = MathUtil::Cos(z);
+            auto sinz = MathUtil::Sin(z);
+
+            Quaternion qx(sinx, R_ZERO, R_ZERO, cosx);
+            Quaternion qy(R_ZERO, siny, R_ZERO, cosy);
+            Quaternion qz(R_ZERO, R_ZERO, sinz, cosz);
+
+            auto ret = (qy * qx) * qz; //zxy
+            assert((ret.SqrMagnitude() - R_ONE) <= R_EPSILON);
+            return ret;
         }
         static Vector3<RType> ToEulerRad(const Quaternion &a);
         {
-            //TODO
-            return Vector3<RType>();
+            auto q = a.Normalized();
+            enum VIndexs = {X1, X2, Y1, Y2, Z1, Z2, SINGULARITY_TEST};
+            enum QIndexs = {XY, XZ, XW, YY, YZ, YW, ZZ, ZW, WW};
+            RType v[7] = {R_ZERO};
+            RType d[] = {q.x_ * q.x_, q.x_ * q.y_, q.x_ * q.z_, q.x_ * q.w_, q.y_ * q.y_, q.y_ * q.z_, q.y_ * q.w_, q.z_ * q.z_, q.z_ * q.w_, q.w_ * q.w_};
+
+            v[SINGULARITY_TEST] = d[YZ] - d[XW];
+            v[Z1] = R_TWO * (d[XY] + d[ZW]);
+            v[Z2] = d[YY] - d[ZZ] - d[XX] + d[WW];
+            v[X1] = -R_ONE;
+            v[X2] = R_TWO * v[SINGULARITY_TEST];
+            if (RAbs(v[SINGULARITY_TEST]) < R_SINGULARITY_CUTOFF)
+            {
+                v[Y1] = TWO * (d[XZ] + d[YW]);
+                v[Y2] = d[ZZ] - d[XX] - d[YY] + d[WW];
+                return Vector3<RType>(v[X1] * MathUtil::Asin(RClamp(v[X2], -R_ONE, R_ONE)), MathUtil::Atan2(v[Y1], v[Y2]), MathUtil::Atan2(v[Z1], v[Z2]));
+            }
+            auto a = d[XY] + d[ZW];
+            auto b = -d[YZ] + d[XW];
+            auto c = d[XY] - d[ZW];
+            auto e = d[YZ] + d[XW];
+
+            v[Y1] = a * e + b * c;
+            v[Y2] = b * e - a * c;
+            return Vector3<RType>(v[X1] * MathUtil::Asin(RClamp(v[X2], -R_ONE, R_ONE)), MathUtil::Atan2(v[Y1], v[Y2]), R_ZERO);
         }
-        static void ToAngleRadAxis(const Quaternion &a, RType *angle, Vector3<RType> *axis)
+        static void ToAxisAngleRad(const Quaternion &a, Vector3<RType> *axis, RType *angle)
         {
-            //TODO
+            auto q = a.Normalized();
+            *angle = R_TWO * MathUtil::Acos(q.w_);
+
+            if (RCompareApproximately(*angle, R_ZERO))
+            {
+                *axis = Vector3<RType>::Right();
+                return;
+            }
+            auto div = R_ONE / MathUtil::Sqrt(R_ONE - q.w_ * q.w_));
+            axis->Set(q.x_ * div, q.y_ * div, q.z_ * div);
         }
         static bool LookRotationToQuaternion(const Vector3<RType> &view, const Vector3<RType> &up, Quaternion *res)
         {
