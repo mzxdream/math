@@ -75,12 +75,13 @@ namespace mzx
 
     private:
         static const RType R_EPSILON;
-        static const RType R_ZERO;             //0
-        static const RType R_ONE;              //1
-        static const RType R_TWO;              //2
-        static const RType R_360;              //360
-        static const RType R_DOT95;            //0.95
-        static const RType R_SINGULARITY_TEST; //0.4999995f
+        static const RType R_ZERO;               //0
+        static const RType R_ONE;                //1
+        static const RType R_TWO;                //2
+        static const RType R_360;                //360
+        static const RType R_DOT95;              //0.95
+        static const RType R_FLIP;               //1e-4f
+        static const RType R_SINGULARITY_CUTOFF; //0.499999f
 
     public:
         Quaternion()
@@ -347,20 +348,20 @@ namespace mzx
             auto mag = axis.Magnitude();
             if (mag > R_EPSILON)
             {
-                auto half_Angle = angle / R_TWO;
-                Quaternion q;
-                q.w = MathUtil::Cos(half_angle);
-                auto s = MathUtil::Sin(half_angle) / mag;
-                q.x = s * axis.x;
-                q.y = s * axis.y;
-                q.z = s * axis.z;
-                return q;
+                auto a = angle / R_TWO;
+                auto cosa = MathUtil::Cos(a);
+                auto sina = MathUtil::Sin(a);
+                return Quaternion(
+                    sina * axis.X() / mag,
+                    sina * axis.Y() / mag,
+                    sina * axis.Z() / mag,
+                    cosa);
             }
             return Identity();
         }
         static Quaternion LookRotation(const Vector3<RType> &view, const Vector3<RType> &up)
         {
-            auto q = Identity();
+            auto q = Indentity();
             if (!LookRotationToQuaternion(view, up, &q))
             {
                 auto mag = view.Magnitude();
@@ -380,23 +381,11 @@ namespace mzx
         }
 
     private:
-        static bool IsEqualUsingDot(const RType &dot)
-        {
-            return dot > R_ONE - R_EPSILON;
-        }
         static RType MakeAnglePositive(const RType &a)
         {
             static const RType NEG_FLIP = MathUtil::Rad2Deg(-R_FLIP);
-            static const RType POS_FLIP = R_360 - R_FLIP;
-            if (a < NEG_FLIP)
-            {
-                return a + R_360;
-            }
-            if (a > POS_FLIP)
-            {
-                return a - R_360;
-            }
-            return a;
+            static const RType POS_FLIP = R_360 + NEG_FLIP;
+            return a < NEG_FLIP ? (a + R_360) : (a > POS_FLIP ? (a - R_360) : a);
         }
         static Quaternion FromEulerRad(const Vector3<RType> &a)
         {
@@ -416,27 +405,31 @@ namespace mzx
             Quaternion qz(R_ZERO, R_ZERO, sinz, cosz);
 
             auto ret = (qy * qx) * qz; //zxy
-            assert((ret.SqrMagnitude() - R_ONE) <= R_EPSILON);
+            assert(MathUtil::CompareApproximately(ret.SqrMagnitude(), R_ONE));
             return ret;
         }
-        static Vector3<RType> ToEulerRad(const Quaternion &a);
+        static Vector3<RType> ToEulerRad(const Quaternion &a)
         {
             auto q = a.Normalized();
-            enum VIndexs = {X1, X2, Y1, Y2, Z1, Z2, SINGULARITY_TEST};
-            enum QIndexs = {XY, XZ, XW, YY, YZ, YW, ZZ, ZW, WW};
-            RType v[7] = {R_ZERO};
-            RType d[] = {q.x_ * q.x_, q.x_ * q.y_, q.x_ * q.z_, q.x_ * q.w_, q.y_ * q.y_, q.y_ * q.z_, q.y_ * q.w_, q.z_ * q.z_, q.z_ * q.w_, q.w_ * q.w_};
 
+            enum VIndexs = {X1 = 0, X2, Y1, Y2, Z1, Z2, SINGULARITY_TEST};
+            enum QIndexs = {XX = 0, XY, XZ, XW, YY, YZ, YW, ZZ, ZW, WW};
+            RType v[7] = {R_ZERO};
+            RType d[10] = {q.x_ * q.x_, q.x_ * q.y_, q.x_ * q.z_, q.x_ * q.w_, q.y_ * q.y_, q.y_ * q.z_, q.y_ * q.w_, q.z_ * q.z_, q.z_ * q.w_, q.w_ * q.w_};
+            // zxy
             v[SINGULARITY_TEST] = d[YZ] - d[XW];
             v[Z1] = R_TWO * (d[XY] + d[ZW]);
             v[Z2] = d[YY] - d[ZZ] - d[XX] + d[WW];
             v[X1] = -R_ONE;
             v[X2] = R_TWO * v[SINGULARITY_TEST];
-            if (RAbs(v[SINGULARITY_TEST]) < R_SINGULARITY_CUTOFF)
+            if (MathUtil::Abs(v[SINGULARITY_TEST]) < R_SINGULARITY_CUTOFF)
             {
                 v[Y1] = TWO * (d[XZ] + d[YW]);
                 v[Y2] = d[ZZ] - d[XX] - d[YY] + d[WW];
-                return Vector3<RType>(v[X1] * MathUtil::Asin(RClamp(v[X2], -R_ONE, R_ONE)), MathUtil::Atan2(v[Y1], v[Y2]), MathUtil::Atan2(v[Z1], v[Z2]));
+                return Vector3<RType>(
+                    v[X1] * MathUtil::Asin(MathUtil::Clamp(v[X2], -R_ONE, R_ONE)),
+                    MathUtil::Atan2(v[Y1], v[Y2]),
+                    MathUtil::Atan2(v[Z1], v[Z2]));
             }
             auto a = d[XY] + d[ZW];
             auto b = -d[YZ] + d[XW];
@@ -445,23 +438,28 @@ namespace mzx
 
             v[Y1] = a * e + b * c;
             v[Y2] = b * e - a * c;
-            return Vector3<RType>(v[X1] * MathUtil::Asin(RClamp(v[X2], -R_ONE, R_ONE)), MathUtil::Atan2(v[Y1], v[Y2]), R_ZERO);
+            return Vector3<RType>(
+                v[X1] * MathUtil::Asin(MathUtil::Clamp(v[X2], -R_ONE, R_ONE)),
+                MathUtil::Atan2(v[Y1], v[Y2]),
+                R_ZERO);
         }
         static void ToAxisAngleRad(const Quaternion &a, Vector3<RType> *axis, RType *angle)
         {
+            assert(axis != nullptr && angle != nullptr);
             auto q = a.Normalized();
-            *angle = R_TWO * MathUtil::Acos(q.w_);
 
-            if (RCompareApproximately(*angle, R_ZERO))
+            *angle = R_TWO * MathUtil::Acos(q.w_);
+            if (MathUtil::CompareApproximately(*angle, R_ZERO))
             {
-                *axis = Vector3<RType>::Right();
+                axis->Set(R_ONE, R_ZERO, R_ZERO);
                 return;
             }
-            auto div = R_ONE / MathUtil::Sqrt(R_ONE - q.w_ * q.w_));
-            axis->Set(q.x_ * div, q.y_ * div, q.z_ * div);
+            auto t = MathUtil::Sqrt(R_ONE - q.w_ * q.w_);
+            axis->Set(q.x_ / t, q.y_ / t, q.z_ / t);
         }
         static bool LookRotationToQuaternion(const Vector3<RType> &view, const Vector3<RType> &up, Quaternion *res)
         {
+            assert(res != nullptr);
             RType m[3][3];
             if (!LookRotationToMatrix3x3(view, up, m))
             {
@@ -475,29 +473,33 @@ namespace mzx
             matrix[0][0] = R_ONE;
             matrix[0][1] = R_ZERO;
             matrix[0][2] = R_ZERO;
+
             matrix[1][0] = R_ZERO;
             matrix[1][1] = R_ONE;
             matrix[1][2] = R_ZERO;
+
             matrix[2][0] = R_ZERO;
             matrix[2][1] = R_ZERO;
             matrix[2][2] = R_ONE;
         }
-        static void SetMatrix3xBasis(RType matrix[3][3], const Vector3<RType> &inx, const Vector3<RType> &iny, const Vector3<RType> &inz)
+        static void SetMatrix3x3Basis(RType matrix[3][3], const Vector3<RType> &inx, const Vector3<RType> &iny, const Vector3<RType> &inz)
         {
             matrix[0][0] = inx[0];
             matrix[0][1] = iny[0];
             matrix[0][2] = inz[0];
+
             matrix[1][0] = inx[1];
             matrix[1][1] = iny[1];
             matrix[1][2] = inz[1];
+
             matrix[2][0] = inx[2];
             matrix[2][1] = iny[2];
             matrix[2][2] = inz[2];
         }
-        static void SetMatrix3x3FromToRotation(RType matrix[3][3], const Vector3 &from, const Vector3 &to)
+        static void SetMatrix3x3FromToRotation(RType matrix[3][3], const Vector3<RType> &from, const Vector3<RType> &to)
         {
-            auto v = Cross(from, to);
-            auto e = Dot(from, to);
+            auto v = Vector3<RType>::Cross(from, to);
+            auto e = Vector3<RType>::Dot(from, to);
             if (e > R_ONE - R_EPSILON)
             {
                 SetMatrix3x3Indentity(m);
@@ -505,7 +507,7 @@ namespace mzx
             else if (e < -R_ONE + R_EPSILON)
             {
                 Vector3<RType> left(R_ZERO, from[2], -from[1]);
-                auto dot = Dot(left, left);
+                auto dot = Vector3<RType>::Dot(left, left);
                 if (dot < R_EPSILON)
                 {
                     left[0] = -from[2];
@@ -513,7 +515,7 @@ namespace mzx
                     left[2] = from[0];
                 }
                 left /= MathUtil::Sqrt(dot);
-                auto up = Cross(left, from);
+                auto up = Vector3<RType>::Cross(left, from);
 
                 auto fxx = -from[0] * from[0];
                 auto fyy = -from[1] * from[1];
@@ -539,9 +541,11 @@ namespace mzx
                 matrix[0][0] = fxx + uxx + lxx;
                 matrix[0][1] = fxy + uxy + lxy;
                 matrix[0][2] = fxz + uxz + lxz;
+
                 matrix[1][0] = matrix[0][1];
                 matrix[1][1] = fyy + uyy + lyy;
                 matrix[1][2] = fyz + uyz + lyz;
+
                 matrix[2][0] = matrix[0][2];
                 matrix[2][1] = matrix[1][2];
                 matrix[2][2] = fzz + uzz + lzz;
@@ -549,37 +553,41 @@ namespace mzx
             else
             {
                 auto h = (R_ONE - e) / Dot(v, v);
+
                 auto hvx = h * v[0];
                 auto hvz = h * v[2];
                 auto hvxy = hvx * v[1];
                 auto hvxz = hvx * v[2];
                 auto hvyz = hvz * v[1];
+
                 matrix[0][0] = e + hvx * v[0];
                 matrix[0][1] = hvxy - v[2];
                 matrix[0][2] = hvxz + v[1];
+
                 matrix[1][0] = hvxy + v[2];
                 matrix[1][1] = e + h * v[1] * v[1];
                 matrix[1][2] = hvyz - v[0];
+
                 matrix[2][0] = hvxz - v[1];
                 matrix[2][1] = hvyz + v[0];
                 matrix[2][2] = e + hvz * v[2];
             }
         }
-        static void Matrix3x3ToQuaternion(RType matrix[3][3], Quaternion &q)
+        static void Matrix3x3ToQuaternion(const RType matrix[3][3], Quaternion &q)
         {
             auto t = matrix[0][0] + matrix[1][1] + matrix[2][2];
             if (t > R_ZERO)
             {
                 auto r = MathUtil::Sqrt(t + R_ONE);
                 q.w = r / R_TWO;
-                r = R_ONE / (R_TWO * r);
-                q.x = (matrix[2][1] - matrix[1][2]) * r;
-                q.y = (matrix[0][2] - matrix[2][0]) * r;
-                q.z = (matrix[1][0] - matrix[0][1]) * r;
+                r *= R_TWO;
+                q.x = (matrix[2][1] - matrix[1][2]) / r;
+                q.y = (matrix[0][2] - matrix[2][0]) / r;
+                q.z = (matrix[1][0] - matrix[0][1]) / r;
             }
             else
             {
-                static const int inext[3] = {1, 2, 0};
+                static constexpr int inext[3] = {1, 2, 0};
                 int i = 0;
                 if (matrix[1][1] > matrix[0][0])
                 {
@@ -593,20 +601,21 @@ namespace mzx
                 auto k = inext[j];
 
                 auto r = MathUtil::Sqrt(matrix[i][i] - matrix[j][j] - matrix[k][k] + R_ONE);
-                auto *apk_quat[3] = {&q.x, &q.y, &q.z};
+                assert(r >= R_EPSILON);
+                auto *apk_quat[3] = {&q.x_, &q.y_, &q.z_};
                 *apk_quat[i] = r / TWO;
-                r = R_ONE / (R_TWO * r);
-                q.w = (matrix[k][j] - matrix[j][k]) * r;
-                *apk_quat[j] = (matrix[j][i] + matrix[i][j]) * r;
-                *apk_quat[k] = (matrix[k][i] + matrix[i][k]) * r;
+                r *= R_TWO;
+                q.w = (matrix[k][j] - matrix[j][k]) / r;
+                *apk_quat[j] = (matrix[j][i] + matrix[i][j]) / r;
+                *apk_quat[k] = (matrix[k][i] + matrix[i][k]) / r;
             }
             q = Normalize(q);
         }
-        static bool LookRotationToMatrix3x3(RType matrix[3][3], const Vector3<RType> &view, const Vector3<RType> &up)
+        static bool LookRotationToMatrix3x3(const Vector3<RType> &view, const Vector3<RType> &up, RType matrix[3][3])
         {
             auto z = view;
 
-            float mag = z.Magnitude();
+            auto mag = z.Magnitude();
             if (mag < R_EPSILON)
             {
                 SetMatrix3x3Identity(matrix);
@@ -614,7 +623,7 @@ namespace mzx
             }
             z /= mag;
 
-            auto x = Cross(up, z);
+            auto x = Vector3<RType>::Cross(up, z);
             mag = x.Magnitude();
             if (mag < R_EPSILON)
             {
@@ -623,25 +632,13 @@ namespace mzx
             }
             x /= mag;
 
-            auto y = Cross(z, x);
-            if (RAbs(y.SqrMagnitude() - R_ONE) > R_EPSILON)
+            auto y = Vector3<RType>::Cross(z, x);
+            if (!MathUtil::CompareApproximately(y.SqrMagnitude(), R_ONE))
             {
                 return false;
             }
-            m->SetBasis(x, y, z);
+            SetMatrix3x3Basis(matrix, x, y, z);
             return true;
-        }
-        static RType RAbs(const RType &a)
-        {
-            return a >= R_ZERO ? a : -a;
-        }
-        static RType RMin(const RType &a, const RType &b)
-        {
-            return a < b ? a : b;
-        }
-        static RType RMax(const RType &a, const RType &b)
-        {
-            return a > b ? a : b;
         }
 
     private:
