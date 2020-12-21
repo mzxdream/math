@@ -1,6 +1,7 @@
 #ifndef __MZX_QUATERNION_H__
 #define __MZX_QUATERNION_H__
 
+#include <cassert>
 #include <cmath>
 #include <mzx/math/vector3.h>
 
@@ -13,10 +14,56 @@ namespace mzx
         using RType = T;
 
     public:
-        static RType Epsilon();
+        static RType CompareApproximately(const RType &a, const RType &b);
         static RType Acos(const RType &a);
         static RType Rad2Deg(const RType &rad);
         static RType Deg2Rad(const RType &deg);
+    };
+
+    template <>
+    class QuaternionMathUtil<float>
+    {
+    public:
+        static float ParseFrom(int a)
+        {
+            return static_cast<float>(a);
+        }
+        static float ParseFrom(int numerator, int denominator)
+        {
+            return static_cast<float>(numerator) / denominator;
+        }
+        static float CompareApproximately(const float &a, const float &b)
+        {
+            return abs(a - b) <= 0.000001f;
+        }
+        static float Abs(const float &a)
+        {
+            return a >= 0 ? a : -a;
+        }
+        static float Clamp(const float &a, const float &mina, const float &maxa)
+        {
+            return a < mina ? mina : (a > maxa ? maxa : a);
+        }
+        static float Min(const float &a, const float &b)
+        {
+            return a < b ? a : b;
+        }
+        static float Max(const float &a, const float &b)
+        {
+            return a > b ? a : b;
+        }
+        static float Acos(const float &a)
+        {
+            return acos(a);
+        }
+        static float Rad2Deg(const float &rad)
+        {
+            return rad * 180.0f / 3.141592653f;
+        }
+        static float Deg2Rad(const float &deg)
+        {
+            return deg * 3.141592653f / 180.0f;
+        }
     };
 
     template <typename T>
@@ -27,14 +74,13 @@ namespace mzx
         using MathUtil = QuaternionMathUtil<RType>;
 
     private:
-        static const RType R_EPSILON; //1e-6f
-        static const RType R_SQR_EPSILON;
-        static const RType R_FLIP; //1e-4f
-        static const RType R_ZERO; //0
-        static const RType R_ONE;  //1
-        static const RType R_TWO;  //2
-        static const RType R_360;  //360
-        static const RType R_SINGULARITY_TEST;
+        static const RType R_EPSILON;
+        static const RType R_ZERO;             //0
+        static const RType R_ONE;              //1
+        static const RType R_TWO;              //2
+        static const RType R_360;              //360
+        static const RType R_DOT95;            //0.95
+        static const RType R_SINGULARITY_TEST; //0.4999995f
 
     public:
         Quaternion()
@@ -88,6 +134,7 @@ namespace mzx
         }
         void Set(const RType *arr)
         {
+            assert(arr != nullptr);
             x_ = arr[0];
             y_ = arr[1];
             z_ = arr[2];
@@ -101,9 +148,9 @@ namespace mzx
         {
             auto vec3 = ToEulerRad(*this);
             vec3.Set(
-                MakePosAngle(MathUtil::Rad2Deg(vec3.X())),
-                MakePosAngle(MathUtil::Rad2Deg(vec3.Y())),
-                MakePosAngle(MathUtil::Rad2Deg(vec3.Z())));
+                MakeAnglePositive(MathUtil::Rad2Deg(vec3.X())),
+                MakeAnglePositive(MathUtil::Rad2Deg(vec3.Y())),
+                MakeAnglePositive(MathUtil::Rad2Deg(vec3.Z())));
             return vec3;
         }
         void SetEulerAngles(const Vector3<RType> &a)
@@ -115,13 +162,13 @@ namespace mzx
         }
         void ToAngleAxis(RType *angle, Vector3<RType> *axis)
         {
-            ToAngleAxisRad(*this, angle, axis);
+            ToAxisAngleRad(*this, axis, angle);
             if (angle != nullptr)
             {
                 *angle = MathUtil::Rad2Deg(*angle);
             }
         }
-        void SetFromToRotation(const Vector3 &from, const Vector3 &to)
+        void SetFromToRotation(const Vector3<RType> &from, const Vector3<RType> &to)
         {
             *this = FromToRotation(from, to);
         }
@@ -173,7 +220,7 @@ namespace mzx
         }
         bool operator==(const Quaternion &a) const
         {
-            return IsEqualUsingDot(Dot(*this, a));
+            return Dot(*this, a) > R_ONE - R_EPSILON;
         }
         bool operator!=(const Quaternion &a) const
         {
@@ -188,11 +235,11 @@ namespace mzx
         static RType Angle(const Quaternion &a, const Quaternion &b)
         {
             auto dot = Dot(a, b);
-            if (IsEqualUsingDot(dot))
+            if (dot > R_ONE - R_EPSILON)
             {
                 return R_ZERO;
             }
-            return MathUtil::Rad2Deg(MathUtil::Acos(RMin(RAbs(dot), R_ONE)) * R_TWO);
+            return MathUtil::Rad2Deg(MathUtil::Acos(MathUtil::Min(MathUtil::Abs(dot), R_ONE)) * R_TWO);
         }
         static Quaternion Euler(const RType &x, const RType &y, const RType &z)
         {
@@ -208,16 +255,16 @@ namespace mzx
         static Quaternion RotateTowards(const Quaternion &from, const Quaternion &to, const RType &max_degrees)
         {
             auto angle = Angle(from, to);
-            if (angle <= R_EPSILON)
+            if (angle < R_EPSILON)
             {
                 return to;
             }
-            return SlerpUnclamped(from, to, RMin(R_ONE, max_degrees / angle));
+            return SlerpUnclamped(from, to, MathUtil::Min(R_ONE, max_degrees / angle));
         }
         static Quaternion Normalize(const Quaternion &a)
         {
             auto mag = MathUtil::Sqrt(Dot(a, a));
-            if (mag <= R_EPSILON)
+            if (mag < R_EPSILON)
             {
                 return Identity();
             }
@@ -243,39 +290,35 @@ namespace mzx
         }
         static Quaternion Slerp(const Quaternion &a, const Quaternion &b, const RType &t)
         {
-            return SlerpUnclamped(a, b, RClamp(t, R_ZERO, R_ONE));
+            return SlerpUnclamped(a, b, MathUtil::Clamp(t, R_ZERO, R_ONE));
         }
         static Quaternion SlerpUnclamped(const Quaternion &a, const Quaternion &b, const RType &t)
         {
-            Quaternion tmp;
+            Quaternion tmp = b;
             auto dot = Dot(a, b);
             if (dot < R_ZERO)
             {
                 dot = -dot;
-                tmp = -b;
-            }
-            else
-            {
-                tmp = b;
+                tmp.Set(-tmp.x_, -tmp.y_, -tmp.z_, -tmp.w_);
             }
             if (dot < R_DOT95)
             {
                 auto angle = MathUtil::Acos(dot);
-                auto sinadiv = R_ONE / MathUtil::Sin(angle);
+                auto sina = MathUtil::Sin(angle);
                 auto sinat = MathUtil::Sin(angle * t);
                 auto sinaomt = MathUtil::Sin(angle * (R_ONE - t));
                 tmp.Set(
-                    (a.x_ * sinaomt + tmp.x_ * sinat) * sinadiv,
-                    (a.y_ * sinaomt + tmp.y_ * sinat) * sinadiv,
-                    (a.z_ * sinaomt + tmp.z_ * sinat) * sinadiv,
-                    (a.w_ * sinaomt + tmp.w_ * sinat) * sinadiv);
+                    (a.x_ * sinaomt + tmp.x_ * sinat) / sina,
+                    (a.y_ * sinaomt + tmp.y_ * sinat) / sina,
+                    (a.z_ * sinaomt + tmp.z_ * sinat) / sina,
+                    (a.w_ * sinaomt + tmp.w_ * sinat) / sina);
                 return tmp;
             }
             return LerpUnclamped(a, tmp, t);
         }
         static Quaternion Lerp(const Quaternion &a, const Quaternion &b, const RType &t)
         {
-            return LerpUnclamped(a, b, RClamp(t, R_ZERO, R_ONE));
+            return LerpUnclamped(a, b, MathUtil::Clamp(t, R_ZERO, R_ONE));
         }
         static Quaternion LerpUnclamped(const Quaternion &a, const Quaternion &b, const RType &t)
         {
@@ -341,7 +384,7 @@ namespace mzx
         {
             return dot > R_ONE - R_EPSILON;
         }
-        static RType MakePosAngle(const RType &a)
+        static RType MakeAnglePositive(const RType &a)
         {
             static const RType NEG_FLIP = MathUtil::Rad2Deg(-R_FLIP);
             static const RType POS_FLIP = R_360 - R_FLIP;
