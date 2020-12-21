@@ -37,11 +37,11 @@ namespace mzx
         {
             return MATH_PI;
         }
-        static float ConvertTo(int a)
+        static float CastFrom(int a)
         {
             return static_cast<float>(a);
         }
-        static float ConvertTo(int numerator, int denominator)
+        static float CastFrom(int numerator, int denominator)
         {
             return static_cast<float>(numerator) / denominator;
         }
@@ -684,6 +684,23 @@ namespace mzx
         RType z_;
         RType w_;
     };
+
+    template <typename T>
+    const T Quaternion<T>::R_EPSILON = QuaternionMathUtil<T>::Epsilon();
+    template <typename T>
+    const T Quaternion<T>::R_ZERO = QuaternionMathUtil<T>::CastFrom(0);
+    template <typename T>
+    const T Quaternion<T>::R_ONE = QuaternionMathUtil<T>::CastFrom(1);
+    template <typename T>
+    const T Quaternion<T>::R_TWO = QuaternionMathUtil<T>::CastFrom(2);
+    template <typename T>
+    const T Quaternion<T>::R_360 = QuaternionMathUtil<T>::CastFrom(360);
+    template <typename T>
+    const T Quaternion<T>::R_DOT95 = QuaternionMathUtil<T>::CastFrom(95, 100);
+    template <typename T>
+    const T Quaternion<T>::R_FLIP = QuaternionMathUtil<T>::CastFrom(1, 10000);
+    template <typename T>
+    const T Quaternion<T>::R_SINGULARITY_CUTOFF = QuaternionMathUtil<T>::CastFrom(499999, 1000000);
 } // namespace mzx
 
 #endif
