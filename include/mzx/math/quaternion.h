@@ -218,14 +218,20 @@ namespace mzx
         {
             return Normalize(*this);
         }
+        RType SqrMagnitude() const
+        {
+            return Dot(*this, *this);
+        }
 
     public:
         RType &operator[](int i)
         {
+            assert(i >= 0 && i <= 3);
             return (&x_)[i];
         }
         const RType &operator[](int i) const
         {
+            assert(i >= 0 && i <= 3);
             return &x_[i];
         }
         Quaternion operator*(const Quaternion &a) const
@@ -236,7 +242,7 @@ namespace mzx
                 w_ * a.z_ + z_ * a.w_ + x_ * a.y_ - y_ * a.x_,
                 w_ * a.w_ - x_ * a.x_ - y_ * a.y_ - z_ * a.z_);
         }
-        Quaternion operator*(const Vector3<RType> &point) const
+        Vector3<RType> operator*(const Vector3<RType> &point) const
         {
             auto x = x_ * R_TWO;
             auto y = y_ * R_TWO;
@@ -367,7 +373,7 @@ namespace mzx
                     a.x_ + t * (-b.x_ - a.x_),
                     a.y_ + t * (-b.y_ - a.y_),
                     a.z_ + t * (-b.z_ - a.z_),
-                    a.w_ + t * (-b.w_ - a.w_)));
+                    a.w_ + t * (-b.w_ - a.w_));
             }
             else
             {
@@ -398,7 +404,7 @@ namespace mzx
         }
         static Quaternion LookRotation(const Vector3<RType> &view, const Vector3<RType> &up)
         {
-            auto q = Indentity();
+            auto q = Identity();
             if (!LookRotationToQuaternion(view, up, &q))
             {
                 auto mag = view.Magnitude();
@@ -426,9 +432,9 @@ namespace mzx
         }
         static Quaternion FromEulerRad(const Vector3<RType> &a)
         {
-            auto x = a.x_ / R_TWO;
-            auto y = a.y_ / R_TWO;
-            auto z = a.z_ / R_TWO;
+            auto x = a.X() / R_TWO;
+            auto y = a.Y() / R_TWO;
+            auto z = a.Z() / R_TWO;
 
             auto cosx = MathUtil::Cos(x);
             auto sinx = MathUtil::Sin(x);
@@ -445,12 +451,33 @@ namespace mzx
             assert(MathUtil::CompareApproximately(ret.SqrMagnitude(), R_ONE));
             return ret;
         }
-        static Vector3<RType> ToEulerRad(const Quaternion &a)
+        static Vector3<RType> ToEulerRad(const Quaternion &quat)
         {
-            auto q = a.Normalized();
+            auto q = quat.Normalized();
 
-            enum VIndexs = {X1 = 0, X2, Y1, Y2, Z1, Z2, SINGULARITY_TEST};
-            enum QIndexs = {XX = 0, XY, XZ, XW, YY, YZ, YW, ZZ, ZW, WW};
+            enum VIndexs
+            {
+                X1 = 0,
+                X2,
+                Y1,
+                Y2,
+                Z1,
+                Z2,
+                SINGULARITY_TEST
+            };
+            enum QIndexs
+            {
+                XX = 0,
+                XY,
+                XZ,
+                XW,
+                YY,
+                YZ,
+                YW,
+                ZZ,
+                ZW,
+                WW
+            };
             RType v[7] = {R_ZERO};
             RType d[10] = {q.x_ * q.x_, q.x_ * q.y_, q.x_ * q.z_, q.x_ * q.w_, q.y_ * q.y_, q.y_ * q.z_, q.y_ * q.w_, q.z_ * q.z_, q.z_ * q.w_, q.w_ * q.w_};
             // zxy
@@ -461,7 +488,7 @@ namespace mzx
             v[X2] = R_TWO * v[SINGULARITY_TEST];
             if (MathUtil::Abs(v[SINGULARITY_TEST]) < R_SINGULARITY_CUTOFF)
             {
-                v[Y1] = TWO * (d[XZ] + d[YW]);
+                v[Y1] = R_TWO * (d[XZ] + d[YW]);
                 v[Y2] = d[ZZ] - d[XX] - d[YY] + d[WW];
                 return Vector3<RType>(
                     v[X1] * MathUtil::Asin(MathUtil::Clamp(v[X2], -R_ONE, R_ONE)),
@@ -505,7 +532,7 @@ namespace mzx
             Matrix3x3ToQuaternion(m, *res);
             return true;
         }
-        static void SetMatrix3x3Indentity(RType matrix[3][3])
+        static void SetMatrix3x3Identity(RType matrix[3][3])
         {
             matrix[0][0] = R_ONE;
             matrix[0][1] = R_ZERO;
@@ -539,7 +566,7 @@ namespace mzx
             auto e = Vector3<RType>::Dot(from, to);
             if (e > R_ONE - R_EPSILON)
             {
-                SetMatrix3x3Indentity(m);
+                SetMatrix3x3Identity(matrix);
             }
             else if (e < -R_ONE + R_EPSILON)
             {
@@ -616,11 +643,11 @@ namespace mzx
             if (t > R_ZERO)
             {
                 auto r = MathUtil::Sqrt(t + R_ONE);
-                q.w = r / R_TWO;
+                q.w_ = r / R_TWO;
                 r *= R_TWO;
-                q.x = (matrix[2][1] - matrix[1][2]) / r;
-                q.y = (matrix[0][2] - matrix[2][0]) / r;
-                q.z = (matrix[1][0] - matrix[0][1]) / r;
+                q.x_ = (matrix[2][1] - matrix[1][2]) / r;
+                q.y_ = (matrix[0][2] - matrix[2][0]) / r;
+                q.z_ = (matrix[1][0] - matrix[0][1]) / r;
             }
             else
             {
@@ -639,10 +666,10 @@ namespace mzx
 
                 auto r = MathUtil::Sqrt(matrix[i][i] - matrix[j][j] - matrix[k][k] + R_ONE);
                 assert(r >= R_EPSILON);
-                auto *apk_quat[3] = {&q.x_, &q.y_, &q.z_};
-                *apk_quat[i] = r / TWO;
+                RType *apk_quat[3] = {&q.x_, &q.y_, &q.z_};
+                *apk_quat[i] = r / R_TWO;
                 r *= R_TWO;
-                q.w = (matrix[k][j] - matrix[j][k]) / r;
+                q.w_ = (matrix[k][j] - matrix[j][k]) / r;
                 *apk_quat[j] = (matrix[j][i] + matrix[i][j]) / r;
                 *apk_quat[k] = (matrix[k][i] + matrix[i][k]) / r;
             }
@@ -701,6 +728,8 @@ namespace mzx
     const T Quaternion<T>::R_FLIP = QuaternionMathUtil<T>::CastFrom(1, 10000);
     template <typename T>
     const T Quaternion<T>::R_SINGULARITY_CUTOFF = QuaternionMathUtil<T>::CastFrom(499999, 1000000);
+
+    using QuaternionF = Quaternion<float>;
 } // namespace mzx
 
 #endif
