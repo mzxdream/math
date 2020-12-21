@@ -3,6 +3,7 @@
 #include <iostream>
 #include "test_math.h"
 #include "test_vector3.h"
+#include "test_quaternion.h"
 
 #define OUT_TO_FILE
 
@@ -19,6 +20,7 @@ int main(int argc, char *argv[])
     srand((unsigned)time(NULL));
     TestMath(100000);
     TestVector3(10000);
+    TestQuaternion(10000);
 #ifdef OUT_TO_FILE
     fclose(stdout);
 #endif
