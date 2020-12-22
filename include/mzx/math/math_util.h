@@ -27,7 +27,7 @@ namespace mzx
         }
         static constexpr RType CompareApproximately(RType a, RType b)
         {
-            return std::abs(a - b) <= MathConsts<T>::EPSILON;
+            return std::abs(a - b) <= MathConsts<T>::Epsilon();
         }
         static constexpr RType Abs(RType a)
         {
@@ -75,11 +75,11 @@ namespace mzx
         }
         static constexpr RType Rad2Deg(RType rad)
         {
-            return rad * static_cast<RType>(180) / MathConsts<RType>::PI;
+            return rad * static_cast<RType>(180) / MathConsts<RType>::PI();
         }
         static constexpr RType Deg2Rad(RType deg)
         {
-            return deg * MathConsts<RType>::PI / static_cast<RType>(180);
+            return deg * MathConsts<RType>::PI() / static_cast<RType>(180);
         }
     };
 
