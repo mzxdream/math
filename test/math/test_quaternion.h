@@ -12,7 +12,7 @@ inline void TestQuaternion(int count)
     q1.SetEulerAngles(Vector3F(30, 30, 30));
     float angle = 0;
     Vector3F axis;
-    q1.ToAngleAxis(&angle, &axis);
+    q1.ToAngleAxis(angle, axis);
     q1.SetFromToRotation(Vector3F(1, 0, 0), Vector3F(-1, 0, 0));
     q1.Normalize();
     auto a2 = q1.Normalized();
