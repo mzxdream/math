@@ -87,12 +87,12 @@ namespace mzx
         }
         Vector3<RType> EulerAngles() const
         {
-            auto vec3 = ToEulerRad(*this);
-            vec3.Set(
-                MakeAnglePositive(MathUtil::Rad2Deg(vec3.X())),
-                MakeAnglePositive(MathUtil::Rad2Deg(vec3.Y())),
-                MakeAnglePositive(MathUtil::Rad2Deg(vec3.Z())));
-            return vec3;
+            auto vec = ToEulerRad(*this);
+            vec.Set(
+                MakeAnglePositive(MathUtil::Rad2Deg(vec.X())),
+                MakeAnglePositive(MathUtil::Rad2Deg(vec.Y())),
+                MakeAnglePositive(MathUtil::Rad2Deg(vec.Z())));
+            return vec;
         }
         void SetEulerAngles(const Vector3<RType> &a)
         {
@@ -292,7 +292,7 @@ namespace mzx
             auto mag = axis.Magnitude();
             if (!MathUtil::CompareApproximately(mag, R_ZERO))
             {
-                auto a = angle / R_TWO;
+                auto a = angle_rad / R_TWO;
                 auto cosa = MathUtil::Cos(a);
                 auto sina = MathUtil::Sin(a);
                 return Quaternion(
@@ -354,8 +354,6 @@ namespace mzx
         }
         static Vector3<RType> ToEulerRad(const Quaternion &quat)
         {
-            auto q = quat.Normalized();
-
             enum VIndexs
             {
                 X1 = 0,
@@ -379,6 +377,8 @@ namespace mzx
                 ZW,
                 WW
             };
+
+            auto q = quat.Normalized();
             RType v[7] = {R_ZERO};
             RType d[10] = {q.x_ * q.x_, q.x_ * q.y_, q.x_ * q.z_, q.x_ * q.w_, q.y_ * q.y_, q.y_ * q.z_, q.y_ * q.w_, q.z_ * q.z_, q.z_ * q.w_, q.w_ * q.w_};
             // zxy
@@ -577,16 +577,13 @@ namespace mzx
         }
         static bool LookRotationToMatrix3x3(const Vector3<RType> &view, const Vector3<RType> &up, RType matrix[3][3])
         {
-            auto z = view;
-
-            auto mag = z.Magnitude();
+            auto mag = view.Magnitude();
             if (MathUtil::CompareApproximately(mag, R_ZERO))
             {
                 SetMatrix3x3Identity(matrix);
                 return false;
             }
-            z /= mag;
-
+            auto z = view / mag;
             auto x = Vector3<RType>::Cross(up, z);
             mag = x.Magnitude();
             if (MathUtil::CompareApproximately(mag, R_ZERO))
@@ -595,7 +592,6 @@ namespace mzx
                 return false;
             }
             x /= mag;
-
             auto y = Vector3<RType>::Cross(z, x);
             if (!MathUtil::CompareApproximately(y.SqrMagnitude(), R_ONE))
             {
