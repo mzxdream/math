@@ -12,26 +12,68 @@ namespace mzx
     class MathConsts<float>
     {
     public:
-        static constexpr float EPSILON = 1e-06f;
-        static constexpr float PI = 3.1415926535897932384626433832795f;
-        static constexpr float HALF_PI = PI * 0.5f;
-        static constexpr float TWO_PI = PI * 2.0f;
-        static constexpr float SQRT2 = 1.4142135623730950488016887242097f;
-        static constexpr float HALF_SQRT2 = SQRT2 * 0.5f;
-        static constexpr float TWO_SQRT2 = SQRT2 * 2.0f;
+        static constexpr float Epsilon()
+        {
+            return 1e-06f;
+        }
+        static constexpr float PI()
+        {
+            return 3.1415926535897932384626433832795f;
+        }
+        static constexpr float HalfPI()
+        {
+            return PI() * 0.5f;
+        }
+        static constexpr float TwoPI()
+        {
+            return PI() * 2.0f;
+        }
+        static constexpr float Sqrt2()
+        {
+            return 1.4142135623730950488016887242097f;
+        }
+        static constexpr float HalfSqrt2()
+        {
+            return Sqrt2() * 0.5f;
+        }
+        static constexpr float TwoSqrt2()
+        {
+            return Sqrt2() * 2.0f;
+        }
     };
 
     template <>
     class MathConsts<double>
     {
     public:
-        static constexpr double EPSILON = 1e-08;
-        static constexpr double PI = 3.1415926535897932384626433832795;
-        static constexpr double HALF_PI = PI * 0.5;
-        static constexpr double TWO_PI = PI * 2.0;
-        static constexpr double SQRT2 = 1.4142135623730950488016887242097;
-        static constexpr double HALF_SQRT2 = SQRT2 * 0.5;
-        static constexpr double TWO_SQRT2 = SQRT2 * 2.0;
+        static constexpr double Epsilon()
+        {
+            return 1e-08;
+        }
+        static constexpr double PI()
+        {
+            return 3.1415926535897932384626433832795;
+        }
+        static constexpr double HalfPI()
+        {
+            return PI() * 0.5;
+        }
+        static constexpr double TwoPI()
+        {
+            return PI() * 2.0;
+        }
+        static constexpr double Sqrt2()
+        {
+            return 1.4142135623730950488016887242097;
+        }
+        static constexpr double HalfSqrt2()
+        {
+            return Sqrt2() * 0.5;
+        }
+        static constexpr double TwoSqrt2()
+        {
+            return Sqrt2() * 2.0;
+        }
     };
 
     template <typename T>
@@ -41,14 +83,39 @@ namespace mzx
         using RType = T;
 
     public:
-        static constexpr RType EPSILON = 0;
-        static constexpr RType PI = 3;
-        static constexpr RType HALF_PI = PI / 2;
-        static constexpr RType TWO_PI = PI * 2;
-        static constexpr RType SQRT2 = 1;
-        static constexpr RType HALF_SQRT2 = SQRT2 / 2;
-        static constexpr RType TWO_SQRT2 = SQRT2 * 2;
+        static constexpr RType Epsilon()
+        {
+            return 0;
+        }
+        static constexpr RType PI()
+        {
+            return 3;
+        }
+        static constexpr RType HalfPI()
+        {
+            return 1;
+        }
+        static constexpr RType TwoPI()
+        {
+            return 6;
+        }
+        static constexpr RType Sqrt2()
+        {
+            return 1;
+        }
+        static constexpr RType HalfSqrt2()
+        {
+            return 1;
+        }
+        static constexpr RType TwoSqrt2()
+        {
+            return 3;
+        }
     };
+
+    using MathConstsF = MathConsts<float>;
+    using MathConstsD = MathConsts<double>;
+    using MathConstsI = MathConsts<int>;
 } // namespace mzx
 
 #endif

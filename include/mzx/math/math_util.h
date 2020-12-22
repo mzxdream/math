@@ -82,6 +82,10 @@ namespace mzx
             return deg * MathConsts<RType>::PI / static_cast<RType>(180);
         }
     };
+
+    using MathUtilF = MathUtil<float>;
+    using MathUtilD = MathUtil<double>;
+    using MathUtilI = MathUtil<int>;
 } // namespace mzx
 
 #endif
