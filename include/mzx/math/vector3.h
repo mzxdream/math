@@ -14,14 +14,14 @@ namespace mzx
         using MathUtil = MathUtil<RType>;
 
     private:
-        static const RType R_PI;
-        static const RType R_OVER_SQRT2;
-        static const RType R_ZERO;
-        static const RType R_ONE;
-        static const RType R_TWO;
-        static const RType R_SMOOTH_TIME_MIN;
-        static const RType R_DOT48;
-        static const RType R_DOT235;
+        static const RType R_PI;              //3.141592653f
+        static const RType R_OVER_SQRT2;      //1.414213562f * 0.5f
+        static const RType R_ZERO;            //0
+        static const RType R_ONE;             //1
+        static const RType R_TWO;             //2
+        static const RType R_SMOOTH_TIME_MIN; //1e-04f
+        static const RType R_DOT48;           //0.48
+        static const RType R_DOT235;          //0.235
 
     public:
         Vector3()
