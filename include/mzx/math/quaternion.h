@@ -8,110 +8,13 @@
 namespace mzx
 {
     template <typename T>
-    class QuaternionMathUtil
-    {
-    public:
-        using RType = T;
-
-    public:
-        static RType CompareApproximately(const RType &a, const RType &b);
-        static RType Acos(const RType &a);
-        static RType Rad2Deg(const RType &rad);
-        static RType Deg2Rad(const RType &deg);
-    };
-
-    template <>
-    class QuaternionMathUtil<float>
-    {
-    private:
-        static constexpr float EPSILON = 0.000001f;
-        static constexpr float MATH_PI = 3.1415926535897931f;
-        static constexpr float MATH_E = 2.7182818284590451f;
-
-    public:
-        static float Epsilon()
-        {
-            return EPSILON;
-        }
-        static float PI()
-        {
-            return MATH_PI;
-        }
-        static float CastFrom(int a)
-        {
-            return static_cast<float>(a);
-        }
-        static float CastFrom(int numerator, int denominator)
-        {
-            return static_cast<float>(numerator) / denominator;
-        }
-        static float CompareApproximately(const float &a, const float &b)
-        {
-            return abs(a - b) <= EPSILON;
-        }
-        static float Abs(const float &a)
-        {
-            return abs(a);
-        }
-        static float Clamp(const float &a, const float &mina, const float &maxa)
-        {
-            return std::min(std::max(a, mina), maxa);
-        }
-        static float Min(const float &a, const float &b)
-        {
-            return std::min(a, b);
-        }
-        static float Max(const float &a, const float &b)
-        {
-            return std::max(a, b);
-        }
-        static float Sqrt(const float &a)
-        {
-            return sqrt(a);
-        }
-        static float Cos(const float &a)
-        {
-            return cos(a);
-        }
-        static float Sin(const float &a)
-        {
-            return sin(a);
-        }
-        static float Acos(const float &a)
-        {
-            return acos(a);
-        }
-        static float Asin(const float &a)
-        {
-            return asin(a);
-        }
-        static float Atan(const float &a)
-        {
-            return atan(a);
-        }
-        static float Atan2(const float &b, const float &a)
-        {
-            return atan2(b, a);
-        }
-        static float Rad2Deg(const float &rad)
-        {
-            return rad * 180.0f / MATH_PI;
-        }
-        static float Deg2Rad(const float &deg)
-        {
-            return deg * MATH_PI / 180.0f;
-        }
-    };
-
-    template <typename T>
     class Quaternion
     {
     public:
         using RType = T;
-        using MathUtil = QuaternionMathUtil<RType>;
+        using MathUtil = MathUtil<RType>;
 
     private:
-        static const RType R_EPSILON;
         static const RType R_ZERO;               //0
         static const RType R_ONE;                //1
         static const RType R_TWO;                //2
@@ -198,13 +101,10 @@ namespace mzx
                 MathUtil::Deg2Rad(a.Y()),
                 MathUtil::Deg2Rad(a.Z())));
         }
-        void ToAngleAxis(RType *angle, Vector3<RType> *axis)
+        void ToAngleAxis(RType &angle, Vector3<RType> &axis)
         {
-            ToAxisAngleRad(*this, axis, angle);
-            if (angle != nullptr)
-            {
-                *angle = MathUtil::Rad2Deg(*angle);
-            }
+            ToAxisAngleRad(*this, &axis, &angle);
+            angle = MathUtil::Rad2Deg(angle);
         }
         void SetFromToRotation(const Vector3<RType> &from, const Vector3<RType> &to)
         {
@@ -220,7 +120,7 @@ namespace mzx
         }
         RType SqrMagnitude() const
         {
-            return Dot(*this, *this);
+            return x_ * x_ + y_ * y_ + z_ * z_ + w_ * w_;
         }
 
     public:
@@ -264,7 +164,7 @@ namespace mzx
         }
         bool operator==(const Quaternion &a) const
         {
-            return Dot(*this, a) > R_ONE - R_EPSILON;
+            return MathUtil::GTEApproximately(Dot(*this, a), R_ONE);
         }
         bool operator!=(const Quaternion &a) const
         {
@@ -279,7 +179,7 @@ namespace mzx
         static RType Angle(const Quaternion &a, const Quaternion &b)
         {
             auto dot = Dot(a, b);
-            if (dot > R_ONE - R_EPSILON)
+            if (MathUtil::GTEApproximately(dot, R_ONE))
             {
                 return R_ZERO;
             }
@@ -299,7 +199,7 @@ namespace mzx
         static Quaternion RotateTowards(const Quaternion &from, const Quaternion &to, const RType &max_degrees)
         {
             auto angle = Angle(from, to);
-            if (angle < R_EPSILON)
+            if (MathUtil::CompareApproximately(angle, R_ZERO))
             {
                 return to;
             }
@@ -307,18 +207,19 @@ namespace mzx
         }
         static Quaternion Normalize(const Quaternion &a)
         {
-            auto mag = MathUtil::Sqrt(Dot(a, a));
-            if (mag < R_EPSILON)
+            auto sqr_mag = Dot(a, a);
+            if (MathUtil::CompareApproximately(sqr_mag, R_ZERO))
             {
                 return Identity();
             }
+            auto mag = MathUtil::Sqrt(sqr_mag);
             return Quaternion(a.x_ / mag, a.y_ / mag, a.z_ / mag, a.w_ / mag);
         }
         static Quaternion FromToRotation(const Vector3<RType> &from, const Vector3<RType> &to)
         {
             auto from_mag = from.Magnitude();
             auto to_mag = to.Magnitude();
-            if (from_mag < R_EPSILON || to_mag < R_EPSILON)
+            if (MathUtil::CompareApproximately(from_mag, R_ZERO) || MathUtil::CompareApproximately(to_mag, R_ZERO))
             {
                 return Identity();
             }
@@ -389,7 +290,7 @@ namespace mzx
         {
             auto angle_rad = MathUtil::Deg2Rad(angle);
             auto mag = axis.Magnitude();
-            if (mag > R_EPSILON)
+            if (!MathUtil::CompareApproximately(mag, R_ZERO))
             {
                 auto a = angle / R_TWO;
                 auto cosa = MathUtil::Cos(a);
@@ -408,7 +309,7 @@ namespace mzx
             if (!LookRotationToQuaternion(view, up, &q))
             {
                 auto mag = view.Magnitude();
-                if (mag > R_EPSILON)
+                if (!MathUtil::CompareApproximately(mag, R_ZERO))
                 {
                     RType m[3][3];
                     SetMatrix3x3FromToRotation(m, Vector3<RType>::Forward(), view / mag);
@@ -563,15 +464,15 @@ namespace mzx
         static void SetMatrix3x3FromToRotation(RType matrix[3][3], const Vector3<RType> &from, const Vector3<RType> &to)
         {
             auto e = Vector3<RType>::Dot(from, to);
-            if (e > R_ONE - R_EPSILON)
+            if (MathUtil::GTEApproximately(e, R_ONE))
             {
                 SetMatrix3x3Identity(matrix);
             }
-            else if (e < -R_ONE + R_EPSILON)
+            else if (MathUtil::LTEApproximately(e, -R_ONE))
             {
                 Vector3<RType> left(R_ZERO, from[2], -from[1]);
                 auto dot = Vector3<RType>::Dot(left, left);
-                if (dot < R_EPSILON)
+                if (MathUtil::CompareApproximately(dot, R_ZERO))
                 {
                     left.Set(-from[2], R_ZERO, from[0]);
                     dot = Vector3<RType>::Dot(left, left);
@@ -664,7 +565,7 @@ namespace mzx
                 auto k = inext[j];
 
                 auto r = MathUtil::Sqrt(matrix[i][i] - matrix[j][j] - matrix[k][k] + R_ONE);
-                assert(r >= R_EPSILON);
+                assert(!MathUtil::CompareApproximately(r, R_ZERO));
                 RType *apk_quat[3] = {&q.x_, &q.y_, &q.z_};
                 *apk_quat[i] = r / R_TWO;
                 r *= R_TWO;
@@ -679,7 +580,7 @@ namespace mzx
             auto z = view;
 
             auto mag = z.Magnitude();
-            if (mag < R_EPSILON)
+            if (MathUtil::CompareApproximately(mag, R_ZERO))
             {
                 SetMatrix3x3Identity(matrix);
                 return false;
@@ -688,7 +589,7 @@ namespace mzx
 
             auto x = Vector3<RType>::Cross(up, z);
             mag = x.Magnitude();
-            if (mag < R_EPSILON)
+            if (MathUtil::CompareApproximately(mag, R_ZERO))
             {
                 SetMatrix3x3Identity(matrix);
                 return false;
@@ -712,21 +613,19 @@ namespace mzx
     };
 
     template <typename T>
-    const T Quaternion<T>::R_EPSILON = QuaternionMathUtil<T>::Epsilon();
+    const typename Quaternion<T>::RType Quaternion<T>::R_ZERO = Quaternion<T>::MathUtil::CastFrom(0);
     template <typename T>
-    const T Quaternion<T>::R_ZERO = QuaternionMathUtil<T>::CastFrom(0);
+    const typename Quaternion<T>::RType Quaternion<T>::R_ONE = Quaternion<T>::MathUtil::CastFrom(1);
     template <typename T>
-    const T Quaternion<T>::R_ONE = QuaternionMathUtil<T>::CastFrom(1);
+    const typename Quaternion<T>::RType Quaternion<T>::R_TWO = Quaternion<T>::MathUtil::CastFrom(2);
     template <typename T>
-    const T Quaternion<T>::R_TWO = QuaternionMathUtil<T>::CastFrom(2);
+    const typename Quaternion<T>::RType Quaternion<T>::R_360 = Quaternion<T>::MathUtil::CastFrom(360);
     template <typename T>
-    const T Quaternion<T>::R_360 = QuaternionMathUtil<T>::CastFrom(360);
+    const typename Quaternion<T>::RType Quaternion<T>::R_DOT95 = Quaternion<T>::MathUtil::CastFrom(95, 100);
     template <typename T>
-    const T Quaternion<T>::R_DOT95 = QuaternionMathUtil<T>::CastFrom(95, 100);
+    const typename Quaternion<T>::RType Quaternion<T>::R_FLIP = Quaternion<T>::MathUtil::CastFrom(1, 10000);
     template <typename T>
-    const T Quaternion<T>::R_FLIP = QuaternionMathUtil<T>::CastFrom(1, 10000);
-    template <typename T>
-    const T Quaternion<T>::R_SINGULARITY_CUTOFF = QuaternionMathUtil<T>::CastFrom(499999, 1000000);
+    const typename Quaternion<T>::RType Quaternion<T>::R_SINGULARITY_CUTOFF = Quaternion<T>::MathUtil::CastFrom(499999, 1000000);
 
     using QuaternionF = Quaternion<float>;
 } // namespace mzx
