@@ -562,7 +562,6 @@ namespace mzx
         }
         static void SetMatrix3x3FromToRotation(RType matrix[3][3], const Vector3<RType> &from, const Vector3<RType> &to)
         {
-            auto v = Vector3<RType>::Cross(from, to);
             auto e = Vector3<RType>::Dot(from, to);
             if (e > R_ONE - R_EPSILON)
             {
@@ -574,9 +573,8 @@ namespace mzx
                 auto dot = Vector3<RType>::Dot(left, left);
                 if (dot < R_EPSILON)
                 {
-                    left[0] = -from[2];
-                    left[1] = R_ZERO;
-                    left[2] = from[0];
+                    left.Set(-from[2], R_ZERO, from[0]);
+                    dot = Vector3<RType>::Dot(left, left);
                 }
                 left /= MathUtil::Sqrt(dot);
                 auto up = Vector3<RType>::Cross(left, from);
@@ -616,6 +614,7 @@ namespace mzx
             }
             else
             {
+                auto v = Vector3<RType>::Cross(from, to);
                 auto h = (R_ONE - e) / Vector3<RType>::Dot(v, v);
 
                 auto hvx = h * v[0];
