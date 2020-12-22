@@ -1,7 +1,7 @@
 #include <random>
 #include <ctime>
 #include <iostream>
-#include "test_math.h"
+#include "test_math_util.h"
 #include "test_vector3.h"
 #include "test_quaternion.h"
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 #endif
     std::cout.precision(17);
     srand((unsigned)time(NULL));
-    TestMath(100000);
+    TestMathUtil(100000);
     TestVector3(10000);
     TestQuaternion(10000);
 #ifdef OUT_TO_FILE
