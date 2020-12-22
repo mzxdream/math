@@ -81,6 +81,10 @@ namespace mzx
         {
             return deg * MathConsts<RType>::PI() / static_cast<RType>(180);
         }
+        static constexpr RType Lerp(RType a, RType b, RType t)
+        {
+            return a + (b - a) * t;
+        }
     };
 
     using MathUtilF = MathUtil<float>;
