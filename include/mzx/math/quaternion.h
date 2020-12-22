@@ -378,10 +378,10 @@ namespace mzx
             else
             {
                 tmp.Set(
-                    a.x_ + t * (b.x - a.x_),
-                    a.y_ + t * (b.y - a.y_),
-                    a.z_ + t * (b.z - a.z_),
-                    a.w_ + t * (b.w - a.w_));
+                    a.x_ + t * (b.x_ - a.x_),
+                    a.y_ + t * (b.y_ - a.y_),
+                    a.z_ + t * (b.z_ - a.z_),
+                    a.w_ + t * (b.w_ - a.w_));
             }
             return Normalize(tmp);
         }

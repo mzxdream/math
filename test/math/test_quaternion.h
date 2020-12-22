@@ -27,4 +27,17 @@ inline void TestQuaternion(int count)
     auto a8 = QuaternionF::Angle(q1, q2);
     auto a9 = QuaternionF::Euler(1, 2, 3);
     auto a10 = QuaternionF::Euler(Vector3F(1, 2, 3));
+    auto a11 = QuaternionF::RotateTowards(q1, q2, 2.0f);
+    auto a12 = QuaternionF::Normalize(q1);
+    Vector3F v1(2, 3, 4);
+    Vector3F v2(4, 5, 6);
+    auto a13 = QuaternionF::FromToRotation(v1, v2);
+    auto a14 = QuaternionF::Inverse(q1);
+    auto a15 = QuaternionF::Slerp(q1, q2, 0.5f);
+    auto a16 = QuaternionF::Lerp(q1, q2, 0.5f);
+    angle = 180.0f;
+    axis = Vector3F(2, 2, 2);
+    auto a17 = QuaternionF::AngleAxis(angle, axis);
+    auto a18 = QuaternionF::LookRotation(axis, Vector3F::Up());
+    auto a19 = QuaternionF::Identity();
 }
