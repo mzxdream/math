@@ -25,9 +25,17 @@ namespace mzx
         {
             return static_cast<RType>(numerator) / static_cast<RType>(denominator);
         }
-        static constexpr RType CompareApproximately(RType a, RType b)
+        static constexpr bool CompareApproximately(RType a, RType b)
         {
             return std::abs(a - b) <= MathConsts<T>::Epsilon();
+        }
+        static constexpr bool GTEApproximately(RType a, RType b)
+        {
+            return a >= b - MathConsts<T>::Epsilon();
+        }
+        static constexpr bool LTEApproximately(RType a, RType b)
+        {
+            return a <= b + MathConsts<T>::Epsilon();
         }
         static constexpr RType Abs(RType a)
         {
@@ -44,6 +52,10 @@ namespace mzx
         static constexpr RType Clamp(RType a, RType mina, RType maxa)
         {
             return std::min(std::max(a, mina), maxa);
+        }
+        static constexpr RType Lerp(RType a, RType b, RType t)
+        {
+            return a + (b - a) * t;
         }
         static constexpr RType Sqrt(RType a)
         {
@@ -80,10 +92,6 @@ namespace mzx
         static constexpr RType Deg2Rad(RType deg)
         {
             return deg * MathConsts<RType>::PI() / static_cast<RType>(180);
-        }
-        static constexpr RType Lerp(RType a, RType b, RType t)
-        {
-            return a + (b - a) * t;
         }
     };
 
