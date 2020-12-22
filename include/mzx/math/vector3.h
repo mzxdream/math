@@ -16,7 +16,6 @@ namespace mzx
         static const RType R_PI;
         static const RType R_OVER_SQRT2;
         static const RType R_EPSILON;
-        static const RType R_SQR_EPSILON;
         static const RType R_ZERO;
         static const RType R_ONE;
         static const RType R_TWO;
@@ -157,7 +156,7 @@ namespace mzx
         }
         bool operator==(const Vector3 &a) const
         {
-            return SqrDistance(*this, a) < R_SQR_EPSILON;
+            return MathUtil::CompareApproximately(SqrDistance(*this, a), R_ZERO);
         }
         bool operator!=(const Vector3 &a) const
         {
@@ -167,7 +166,7 @@ namespace mzx
     public:
         static Vector3 Lerp(const Vector3 &a, const Vector3 &b, const RType &t)
         {
-            return LerpUnclamped(a, b, RClamp(t, R_ZERO, R_ONE));
+            return LerpUnclamped(a, b, MathUtil::Clamp(t, R_ZERO, R_ONE));
         }
         static Vector3 LerpUnclamped(const Vector3 &a, const Vector3 &b, const RType &t)
         {
@@ -179,7 +178,7 @@ namespace mzx
             auto y = target.y_ - current.y_;
             auto z = target.z_ - current.z_;
             auto sqr_dist = x * x + y * y + z * z;
-            if (sqr_dist <= R_SQR_EPSILON || (max_distance >= R_ZERO && sqr_dist <= max_distance * max_distance))
+            if (MathUtil::CompareApproximately(sqr_dist, R_ZERO) || (max_distance >= R_ZERO && sqr_dist <= max_distance * max_distance))
             {
                 return target;
             }
@@ -188,7 +187,7 @@ namespace mzx
         }
         static Vector3 SmoothDamp(const Vector3 &current, const Vector3 &target, Vector3 &current_velocity, const RType &smooth_time, const RType &max_speed, const RType &delta_time)
         {
-            auto stime = RMax(smooth_time, R_SMOOTH_TIME_MIN);
+            auto stime = MathUtil::Max(smooth_time, R_SMOOTH_TIME_MIN);
             auto omega = R_TWO / stime;
             auto x = omega * delta_time;
             auto exp = R_ONE / (R_ONE + x + R_DOT48 * x * x + R_DOT235 * x * x * x);
@@ -261,9 +260,9 @@ namespace mzx
         static RType Angle(const Vector3 &from, const Vector3 &to)
         {
             auto denominator = MathUtil::Sqrt(from.SqrMagnitude() * to.SqrMagnitude());
-            if (denominator > R_SQR_EPSILON)
+            if (!MathUtil::CompareApproximately(denominator, R_ZERO))
             {
-                auto dot = RClamp(Dot(from, to) / denominator, -R_ONE, R_ONE);
+                auto dot = MathUtil::Clamp(Dot(from, to) / denominator, -R_ONE, R_ONE);
                 return MathUtil::Rad2Deg(MathUtil::Acos(dot));
             }
             return R_ZERO;
@@ -307,15 +306,15 @@ namespace mzx
         }
         static Vector3 Min(const Vector3 &lhs, const Vector3 &rhs)
         {
-            return Vector3(RMin(lhs.x_, rhs.x_), RMin(lhs.y_, rhs.y_), RMin(lhs.z_, rhs.z_));
+            return Vector3(MathUtil::Min(lhs.x_, rhs.x_), MathUtil::Min(lhs.y_, rhs.y_), MathUtil::Min(lhs.z_, rhs.z_));
         }
         static Vector3 Max(const Vector3 &lhs, const Vector3 &rhs)
         {
-            return Vector3(RMax(lhs.x_, rhs.x_), RMax(lhs.y_, rhs.y_), RMax(lhs.z_, rhs.z_));
+            return Vector3(MathUtil::Max(lhs.x_, rhs.x_), MathUtil::Max(lhs.y_, rhs.y_), MathUtil::Max(lhs.z_, rhs.z_));
         }
         static Vector3 Slerp(const Vector3 &lhs, const Vector3 &rhs, const RType &t)
         {
-            return SlerpUnclamped(lhs, rhs, RClamp(t, R_ZERO, R_ONE));
+            return SlerpUnclamped(lhs, rhs, MathUtil::Clamp(t, R_ZERO, R_ONE));
         }
         static Vector3 SlerpUnclamped(const Vector3 &lhs, const Vector3 &rhs, const RType &t)
         {
@@ -325,7 +324,7 @@ namespace mzx
             {
                 return Lerp(lhs, rhs, t);
             }
-            auto lerped_magnitude = RLerp(lhs_mag, rhs_mag, t);
+            auto lerped_magnitude = MathUtil::Lerp(lhs_mag, rhs_mag, t);
             auto dot = Dot(lhs, rhs) / (lhs_mag * rhs_mag);
             if (dot > R_ONE - R_EPSILON)
             {
@@ -446,7 +445,7 @@ namespace mzx
                     auto angle = MathUtil::Acos(dot);
                     auto axis = Normalize(Cross(lhs_norm, rhs_norm));
                     RType m[3][3];
-                    SetMatrix3x3AngleAxis(m, RMin(max_radians, angle), axis);
+                    SetMatrix3x3AngleAxis(m, MathUtil::Min(max_radians, angle), axis);
                     auto rotated = Matrix3x3MultiVec3(m, lhs_norm);
                     rotated *= ClampedMove(lhs_mag, rhs_mag, max_magnitude);
                     return rotated;
@@ -498,7 +497,7 @@ namespace mzx
     private:
         static Vector3 OrthoNormalVectorFast(const Vector3 &n)
         {
-            if (RAbs(n.z_) > R_OVER_SQRT2)
+            if (MathUtil::Abs(n.z_) > R_OVER_SQRT2)
             {
                 auto k = MathUtil::Sqrt(n.y_ * n.y_ + n.z_ * n.z_);
                 return Vector3(R_ZERO, -n.z_ / k, n.y_ / k);
@@ -563,29 +562,9 @@ namespace mzx
             auto delta = rhs - lhs;
             if (delta > R_ZERO)
             {
-                return lhs + RMin(delta, clamped_delta);
+                return lhs + MathUtil::Min(delta, clamped_delta);
             }
-            return lhs - RMin(-delta, clamped_delta);
-        }
-        static RType RAbs(const RType &a)
-        {
-            return a >= R_ZERO ? a : -a;
-        }
-        static RType RMin(const RType &a, const RType &b)
-        {
-            return a < b ? a : b;
-        }
-        static RType RMax(const RType &a, const RType &b)
-        {
-            return a > b ? a : b;
-        }
-        static RType RClamp(const RType &t, const RType &mint, const RType &maxt)
-        {
-            return t < mint ? mint : (t > maxt ? maxt : t);
-        }
-        static RType RLerp(const RType &a, const RType &b, const RType &t)
-        {
-            return a + (b - a) * t;
+            return lhs - MathUtil::Min(-delta, clamped_delta);
         }
 
     private:
@@ -600,8 +579,6 @@ namespace mzx
     const typename Vector3<T>::RType Vector3<T>::R_OVER_SQRT2 = Vector3<T>::MathUtil::HalfSqrt2();
     template <typename T>
     const typename Vector3<T>::RType Vector3<T>::R_EPSILON = Vector3<T>::MathUtil::Epsilon();
-    template <typename T>
-    const typename Vector3<T>::RType Vector3<T>::R_SQR_EPSILON = Vector3<T>::MathUtil::Epsilon() * Vector3<T>::MathUtil::Epsilon();
     template <typename T>
     const typename Vector3<T>::RType Vector3<T>::R_ZERO = Vector3<T>::MathUtil::CastFrom(0);
     template <typename T>
