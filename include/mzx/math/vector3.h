@@ -1,40 +1,16 @@
 #ifndef __MZX_VECTOR3_H__
 #define __MZX_VECTOR3_H__
 
-#include <cmath>
+#include <mzx/math/math_util.h>
 
 namespace mzx
 {
-    template <typename T>
-    class Vector3MathUtil
-    {
-    public:
-        using RType = T;
-
-    public:
-        static RType PI();
-        static RType OverSqrt2(); //sqrt2/2
-        static RType Epsilon();
-        static RType Zero();
-        static RType One();
-        static RType Two();
-        static RType SmoothTimeMin();
-        static RType Dot48();
-        static RType Dot235();
-        static RType Sqrt(const RType &a);
-        static RType Rad2Deg(const RType &a);
-        static RType Deg2Rad(const RType &a);
-        static RType Sin(const RType &a);
-        static RType Cos(const RType &a);
-        static RType Acos(const RType &a);
-    };
-
     template <typename T>
     class Vector3
     {
     public:
         using RType = T;
-        using MathUtil = Vector3MathUtil<RType>;
+        using MathUtil = MathUtil<RType>;
 
     private:
         static const RType R_PI;
@@ -621,89 +597,23 @@ namespace mzx
     template <typename T>
     const typename Vector3<T>::RType Vector3<T>::R_PI = Vector3<T>::MathUtil::PI();
     template <typename T>
-    const typename Vector3<T>::RType Vector3<T>::R_OVER_SQRT2 = Vector3<T>::MathUtil::OverSqrt2();
+    const typename Vector3<T>::RType Vector3<T>::R_OVER_SQRT2 = Vector3<T>::MathUtil::HalfSqrt2();
     template <typename T>
     const typename Vector3<T>::RType Vector3<T>::R_EPSILON = Vector3<T>::MathUtil::Epsilon();
     template <typename T>
     const typename Vector3<T>::RType Vector3<T>::R_SQR_EPSILON = Vector3<T>::MathUtil::Epsilon() * Vector3<T>::MathUtil::Epsilon();
     template <typename T>
-    const typename Vector3<T>::RType Vector3<T>::R_ZERO = Vector3<T>::MathUtil::Zero();
+    const typename Vector3<T>::RType Vector3<T>::R_ZERO = Vector3<T>::MathUtil::CastFrom(0);
     template <typename T>
-    const typename Vector3<T>::RType Vector3<T>::R_ONE = Vector3<T>::MathUtil::One();
+    const typename Vector3<T>::RType Vector3<T>::R_ONE = Vector3<T>::MathUtil::CastFrom(1);
     template <typename T>
-    const typename Vector3<T>::RType Vector3<T>::R_TWO = Vector3<T>::MathUtil::Two();
+    const typename Vector3<T>::RType Vector3<T>::R_TWO = Vector3<T>::MathUtil::CastFrom(2);
     template <typename T>
-    const typename Vector3<T>::RType Vector3<T>::R_SMOOTH_TIME_MIN = Vector3<T>::MathUtil::SmoothTimeMin();
+    const typename Vector3<T>::RType Vector3<T>::R_SMOOTH_TIME_MIN = Vector3<T>::MathUtil::CastFrom(1, 10000);
     template <typename T>
-    const typename Vector3<T>::RType Vector3<T>::R_DOT48 = Vector3<T>::MathUtil::Dot48();
+    const typename Vector3<T>::RType Vector3<T>::R_DOT48 = Vector3<T>::MathUtil::CastFrom(48, 100);
     template <typename T>
-    const typename Vector3<T>::RType Vector3<T>::R_DOT235 = Vector3<T>::MathUtil::Dot235();
-
-    template <>
-    class Vector3MathUtil<float>
-    {
-    public:
-        static float PI()
-        {
-            return 3.14159265358979323846f;
-        }
-        static float OverSqrt2()
-        {
-            return 0.7071067811865475244008443621048490f;
-        }
-        static float Epsilon()
-        {
-            return 1e-6f;
-        }
-        static float Zero()
-        {
-            return 0;
-        }
-        static float One()
-        {
-            return 1;
-        }
-        static float Two()
-        {
-            return 2;
-        }
-        static float SmoothTimeMin()
-        {
-            return 1e-4f;
-        }
-        static float Dot48()
-        {
-            return 0.48f;
-        }
-        static float Dot235()
-        {
-            return 0.235f;
-        }
-        static float Sqrt(const float &a)
-        {
-            return static_cast<float>(sqrt(a));
-        }
-        static float Rad2Deg(const float &a)
-        {
-            return a * 180.0f / PI();
-        }
-        static float Deg2Rad(const float &a)
-        {
-            return a * PI() / 180.0f;
-        }
-        static float Sin(const float &a)
-        {
-            return sin(a);
-        }
-        static float Cos(const float &a)
-        {
-            return cos(a);
-        }
-        static float Acos(const float &a)
-        {
-            return static_cast<float>(acos(a));
-        }
-    };
+    const typename Vector3<T>::RType Vector3<T>::R_DOT235 = Vector3<T>::MathUtil::CastFrom(235, 1000);
 
     using Vector3F = Vector3<float>;
 } // namespace mzx
