@@ -1,6 +1,7 @@
 #ifndef __MZX_VECTOR3_H__
 #define __MZX_VECTOR3_H__
 
+#include <cassert>
 #include <mzx/math/math_util.h>
 
 namespace mzx
@@ -65,6 +66,7 @@ namespace mzx
         }
         void Set(const RType *arr)
         {
+            assert(arr != nullptr);
             x_ = arr[0];
             y_ = arr[1];
             z_ = arr[2];
@@ -95,10 +97,12 @@ namespace mzx
     public:
         RType &operator[](int i)
         {
+            assert(i >= 0 && i <= 3);
             return (&x_)[i];
         }
         const RType &operator[](int i) const
         {
+            assert(i >= 0 && i <= 3);
             return (&x_)[i];
         }
         Vector3 operator+(const Vector3 &a) const
