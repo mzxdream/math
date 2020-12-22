@@ -188,6 +188,7 @@ namespace mzx
         {
             auto stime = MathUtil::Max(smooth_time, R_SMOOTH_TIME_MIN);
             auto omega = R_TWO / stime;
+
             auto x = omega * delta_time;
             auto exp = R_ONE / (R_ONE + x + R_DOT48 * x * x + R_DOT235 * x * x * x);
 
@@ -258,10 +259,10 @@ namespace mzx
         }
         static RType Angle(const Vector3 &from, const Vector3 &to)
         {
-            auto denominator = MathUtil::Sqrt(from.SqrMagnitude() * to.SqrMagnitude());
-            if (!MathUtil::CompareApproximately(denominator, R_ZERO))
+            auto sqr_mag = from.SqrMagnitude() * to.SqrMagnitude();
+            if (!MathUtil::CompareApproximately(sqr_mag, R_ZERO))
             {
-                auto dot = MathUtil::Clamp(Dot(from, to) / denominator, -R_ONE, R_ONE);
+                auto dot = MathUtil::Clamp(Dot(from, to) / MathUtil::Sqrt(sqr_mag), -R_ONE, R_ONE);
                 return MathUtil::Rad2Deg(MathUtil::Acos(dot));
             }
             return R_ZERO;
@@ -334,19 +335,18 @@ namespace mzx
                 auto lhs_norm = lhs / lhs_mag;
                 auto axis = OrthoNormalVectorFast(lhs_norm);
                 RType m[3][3];
-                SetMatrix3x3AngleAxis(m, R_PI * t, axis);
+                SetMatrix3x3AxisAngleRad(m, axis, t * R_PI);
                 auto slerped = Matrix3x3MultiVec3(m, lhs_norm);
                 slerped *= lerped_magnitude;
                 return slerped;
             }
             else
             {
-                auto axis = Cross(lhs, rhs);
+                auto axis = Normalize(Cross(lhs, rhs));
                 auto lhs_norm = lhs / lhs_mag;
-                axis = Normalize(axis);
                 auto angle = MathUtil::Acos(dot) * t;
                 RType m[3][3];
-                SetMatrix3x3AngleAxis(m, angle, axis);
+                SetMatrix3x3AxisAngleRad(m, axis, angle);
                 auto slerped = Matrix3x3MultiVec3(m, lhs_norm);
                 slerped *= lerped_magnitude;
                 return slerped;
@@ -434,7 +434,7 @@ namespace mzx
                 {
                     auto axis = OrthoNormalVectorFast(lhs_norm);
                     RType m[3][3];
-                    SetMatrix3x3AngleAxis(m, max_radians, axis);
+                    SetMatrix3x3AxisAngleRad(m, axis, max_radians);
                     auto rotated = Matrix3x3MultiVec3(m, lhs_norm);
                     rotated *= ClampedMove(lhs_mag, rhs_mag, max_magnitude);
                     return rotated;
@@ -444,7 +444,7 @@ namespace mzx
                     auto angle = MathUtil::Acos(dot);
                     auto axis = Normalize(Cross(lhs_norm, rhs_norm));
                     RType m[3][3];
-                    SetMatrix3x3AngleAxis(m, MathUtil::Min(max_radians, angle), axis);
+                    SetMatrix3x3AxisAngleRad(m, axis, MathUtil::Min(max_radians, angle));
                     auto rotated = Matrix3x3MultiVec3(m, lhs_norm);
                     rotated *= ClampedMove(lhs_mag, rhs_mag, max_magnitude);
                     return rotated;
@@ -504,7 +504,7 @@ namespace mzx
             auto k = MathUtil::Sqrt(n.x_ * n.x_ + n.y_ * n.y_);
             return Vector3(-n.y_ / k, n.x_ / k, R_ZERO);
         }
-        static void SetMatrix3x3AngleAxis(RType matrix[3][3], const RType &angle_rad, const Vector3 &axis)
+        static void SetMatrix3x3AxisAngleRad(RType matrix[3][3], const Vector3 &axis, const RType &angle_rad)
         {
             auto s = MathUtil::Sin(angle_rad);
             auto c = MathUtil::Cos(angle_rad);
