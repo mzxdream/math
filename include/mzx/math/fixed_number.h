@@ -12,16 +12,16 @@ namespace mzx
     class FixedNumber
     {
     public:
-        static_assert(N > 0 && N < sizeof(T));
+        static_assert(N > 0 && N < sizeof(T) * CHAR_BIT);
         using RType = std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, T>;
         using RUType = std::make_unsigned_t<RType>;
         using FType = std::enable_if_t<std::is_floating_point_v<F>, F>;
 
     public:
-        static constexpr RType R_NBITS = N;
-        static constexpr RType R_BASE = 1 << R_NBITS;
-        static constexpr RType R_MASK = R_BASE - 1;
-        static constexpr RType R_HALF = R_BASE >> 1;
+        static constexpr RType R_NBITS = static_cast<RType>(N);
+        static constexpr RType R_BASE = static_cast<RType>(1) << R_NBITS;
+        static constexpr RType R_MASK = R_BASE - static_cast<RType>(1);
+        static constexpr RType R_HALF = R_BASE >> static_cast<RType>(1);
         static constexpr RType R_NAN = std::numeric_limits<RType>::min();
         static constexpr RType R_INF = std::numeric_limits<RType>::max();
         static constexpr RType R_MAX = R_INF - 1;
@@ -29,7 +29,7 @@ namespace mzx
         static constexpr FType R_MAX_FLT = static_cast<FType>(R_MAX) / static_cast<FType>(R_BASE);
 
     public:
-        explicit FixedNumber(RType raw_value)
+        explicit FixedNumber(RType raw_value = 0)
             : raw_value_(raw_value)
 #ifndef NDEBUG
               ,
