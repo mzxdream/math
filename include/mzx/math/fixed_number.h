@@ -57,17 +57,17 @@ namespace mzx
         }
         RType ToInt() const
         {
-            assert(raw_value_ > -R_MAX && raw_value_ < R_MAX);
+            assert(raw_value_ >= -R_MAX && raw_value_ <= R_MAX);
             return raw_value_ >= 0 ? (raw_value_ >> R_NBITS) : -(-raw_value_ >> R_NBITS);
         }
         RType ToFloorInt() const
         {
-            assert(raw_value_ > -R_MAX && raw_value_ < R_MAX);
+            assert(raw_value_ >= -R_MAX && raw_value_ <= R_MAX);
             return raw_value_ >> FBITS;
         }
         RType ToCeilInt() const
         {
-            assert(raw_value_ > -R_MAX && raw_value_ < R_MAX);
+            assert(raw_value_ >= -R_MAX && raw_value_ <= R_MAX);
             if (raw_value_ >= 0)
             {
                 return static_cast<RType>((static_cast<RUType>(raw_value_) + R_MASK) >> R_NBITS);
@@ -76,7 +76,7 @@ namespace mzx
         }
         RType ToRoundInt() const
         {
-            assert(raw_value_ > -R_MAX && raw_value_ < R_MAX);
+            assert(raw_value_ >= -R_MAX && raw_value_ <= R_MAX);
             if (raw_value_ >= 0)
             {
                 return static_cast<RType>((static_cast<RUType>(raw_value_) + R_HALF) >> R_NBITS);
@@ -197,7 +197,7 @@ namespace mzx
     public:
         static FixedNumber FromInt(RType value)
         {
-            assert(value > -R_MAX_INT && value < R_MAX_INT);
+            assert(value >= -R_MAX_INT && value <= R_MAX_INT);
             return FixedNumber(value << R_BITS);
         }
         static FixedNumber FromFloat(FType value)
@@ -209,13 +209,13 @@ namespace mzx
             case FP_INFINITE:
                 return value < 0 ? FixedNumber(-R_INF) : FixedNumber(R_INF);
             default:
-                assert(value > -R_MAX_FLT && value < -R_MAX_FLT);
+                assert(value >= -R_MAX_FLT && value <= -R_MAX_FLT);
                 return FixedNumber(static_cast<RType>(value * R_BASE));
             }
         }
         static FixedNumber FromFraction(RType numerator, RType denominator)
         {
-            assert(numerator > -R_MAX_INT && numerator < R_MAX_INT && denominator > -R_MAX_INT && denominator < R_MAX_INT && denominator != 0);
+            assert(numerator >= -R_MAX_INT && numerator <= R_MAX_INT && denominator >= -R_MAX_INT && denominator <= R_MAX_INT && denominator != 0);
             RUType p = std::abs(numerator);
             RUType q = std::abs(denominator);
             auto r = static_cast<RType>(((p << (R_BITS + 1)) / q + 1) >> 1);
@@ -267,35 +267,35 @@ namespace mzx
         {
             switch (raw_value)
             {
+            case R_NAN:
+                return std::numeric_limits<FType>::quiet_NaN();
             case -R_INF:
                 return -std::numeric_limits<FType>::infinity();
             case R_INF:
                 return std::numeric_limits<FType>::infinity();
-            case R_NAN:
-                return std::numeric_limits<FType>::quiet_NaN();
             default:
                 return static_cast<FType>(raw_value) / static_cast<FType>(R_BASE);
             }
         }
-        static int64_t FixedAdd(int64_t a, int64_t b)
+        static RType FixedAdd(RType a, RType b)
         {
-            if (a == FNAN || b == FNAN)
+            if (a == R_NAN || b == R_NAN)
             {
-                return FNAN;
+                return R_NAN;
             }
-            if (a == FINF || a == -FINF)
+            if (a == R_INF || a == -R_INF)
             {
                 if (a == -b)
                 {
-                    return FNAN;
+                    return R_NAN;
                 }
                 return a;
             }
-            if (b == FINF || b == -FINF)
+            if (b == R_INF || b == -R_INF)
             {
                 return b;
             }
-            MZX_CHECK(std::abs(static_cast<double>(a) + b) <= FMAX);
+            assert(a + b - a == b && a + b >= -R_MAX && a + b <= R_MAX);
             return a + b;
         }
         static int64_t FixedSub(int64_t a, int64_t b)
