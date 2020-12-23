@@ -8,11 +8,11 @@
 
 namespace mzx
 {
-    template <typename T, std::size_t N, typename F>
+    template <typename T, std::size_t N, typename F = float>
     class FixedNumber
     {
     public:
-        static_assert(N > 0 && N < sizeof(T) * CHAR_BIT);
+        static_assert(N > 0 && N < sizeof(T) * CHAR_BIT - 1);
         using RType = std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, T>;
         using RUType = std::make_unsigned_t<RType>;
         using FType = std::enable_if_t<std::is_floating_point_v<F>, F>;
@@ -390,7 +390,7 @@ namespace mzx
                 dividend <<= 1;
                 --nbits;
             }
-            assert(res <= R_MAX * 2);
+            assert(res <= static_cast<RUType>(R_MAX) * static_cast<RUType>(2));
             return (a ^ b) < 0 ? -static_cast<RType>((res + 1) >> 1) : static_cast<RType>((res + 1) >> 1);
         }
 
