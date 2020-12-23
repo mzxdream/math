@@ -208,7 +208,7 @@ namespace mzx
             case FP_INFINITE:
                 return value < 0 ? FixedNumber(-R_INF) : FixedNumber(R_INF);
             default:
-                assert(value >= -R_MAX_FLT && value <= -R_MAX_FLT);
+                assert(value >= -R_MAX_FLT && value <= R_MAX_FLT);
                 return FixedNumber(static_cast<RType>(value * R_BASE));
             }
         }
