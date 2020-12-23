@@ -9,30 +9,30 @@
 
 namespace mzx
 {
-    template <typename T, std::size_t N>
+    template <typename T, std::size_t N, typename F>
     class FixedNumber
     {
-        static_assert(std::is_same_v<T, std::int16_t> || std::is_same_v<T, std::int32_t> || std::is_same_v<T, std::int64_t>);
-        static_assert(N > 0 && N + 1 < sizeof(T));
+    public:
+        static_assert(N > 0 && N < sizeof(T));
+        using RType = std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, T>;
+        using RUType = std::make_unsigned_t<RType>;
+        using FType = std::enable_if_t<std::is_floating_point_v<F>, F>;
 
     public:
-        using RType = T;
-
-    public:
-        static constexpr RType R_BITS = N;
-        static constexpr RType R_BASE = (static_cast<RType>(1) << R_BITS);
-        static constexpr RType R_MASK = R_BASE - static_cast<RType>(1);
-        static constexpr RType R_HALF = R_BASE >> static_cast<RType>(1);
+        static constexpr RType R_NBITS = N;
+        static constexpr RType R_BASE = 1 << R_NBITS;
+        static constexpr RType R_MASK = R_BASE - 1;
+        static constexpr RType R_HALF = R_BASE >> 1;
         static constexpr RType R_NAN = std::numeric_limits<RType>::min();
         static constexpr RType R_INF = std::numeric_limits<RType>::max();
         static constexpr RType R_MAX = R_INF - 1;
-        static constexpr RType R_MAX_INT = (R_MAX >> R_BITS);
-        static constexpr RType R_MAX_FLT = static_cast<float>(R_MAX) / static_cast<float>(R_BASE);
+        static constexpr RType R_MAX_INT = R_MAX >> R_NBITS;
+        static constexpr FType R_MAX_FLT = static_cast<FType>(R_MAX) / static_cast<FType>(R_BASE);
 
     public:
-        explicit FixedNumber(int64_t raw_value)
+        explicit FixedNumber(RType raw_value)
             : raw_value_(raw_value)
-#ifdef MZX_DEBUG
+#ifndef NDEBUG
               ,
               debug_value_(RawToFloat(raw_value))
 #endif
@@ -40,52 +40,48 @@ namespace mzx
         }
 
     public:
-        void Set(int64_t raw_value)
+        void Set(RType raw_value)
         {
             raw_value_ = raw_value;
-#ifdef MZX_DEBUG
+#ifndef NDEBUG
             debug_value_ = RawToFloat(raw_value_);
 #endif
         }
-        int64_t Get() const
+        RType Get() const
         {
             return raw_value_;
         }
-        float ToFloat() const
+        FType ToFloat() const
         {
             return RawToFloat(raw_value_);
         }
-        int64_t ToInt() const
+        RType ToInt() const
         {
-            MZX_CHECK(std::abs(raw_value_) <= FMAX);
-            if (raw_value_ >= 0)
-            {
-                return raw_value_ >> FBITS;
-            }
-            return -(-raw_value_ >> FBITS);
+            assert(raw_value_ > -R_MAX && raw_value_ < R_MAX);
+            return raw_value_ >= 0 ? (raw_value_ >> R_NBITS) : -(-raw_value_ >> R_NBITS);
         }
-        int64_t ToFloorInt() const
+        RType ToFloorInt() const
         {
-            MZX_CHECK(std::abs(raw_value_) <= FMAX);
+            assert(raw_value_ > -R_MAX && raw_value_ < R_MAX);
             return raw_value_ >> FBITS;
         }
-        int64_t ToCeilInt() const
+        RType ToCeilInt() const
         {
-            MZX_CHECK(std::abs(raw_value_) <= FMAX);
+            assert(raw_value_ > -R_MAX && raw_value_ < R_MAX);
             if (raw_value_ >= 0)
             {
-                return static_cast<int64_t>((static_cast<uint64_t>(raw_value_) + FMASK) >> FBITS);
+                return static_cast<RType>((static_cast<RUType>(raw_value_) + R_MASK) >> R_NBITS);
             }
-            return -(-raw_value_ >> FBITS);
+            return -(-raw_value_ >> R_NBITS);
         }
-        int64_t ToRoundInt() const
+        RType ToRoundInt() const
         {
-            MZX_CHECK(std::abs(raw_value_) <= FMAX);
+            assert(raw_value_ > -R_MAX && raw_value_ < R_MAX);
             if (raw_value_ >= 0)
             {
-                return static_cast<int64_t>((static_cast<uint64_t>(raw_value_) + FHALF) >> FBITS);
+                return static_cast<RType>((static_cast<RUType>(raw_value_) + R_HALF) >> R_NBITS);
             }
-            return -static_cast<int64_t>((static_cast<uint64_t>(-raw_value_) + FHALF) >> FBITS);
+            return -static_cast<RType>((static_cast<RUType>(-raw_value_) + R_HALF) >> R_NBITS);
         }
         FixedNumber ToFloor() const
         {
@@ -101,23 +97,23 @@ namespace mzx
         }
         bool IsNAN() const
         {
-            return raw_value_ == FNAN;
+            return raw_value_ == R_NAN;
         }
-        bool IsPosInf() const
+        bool IsPosInfinite() const
         {
-            return raw_value_ == FINF;
+            return raw_value_ == R_INF;
         }
-        bool IsNegInf() const
+        bool IsNegInfinite() const
         {
-            return raw_value_ == -FINF;
+            return raw_value_ == -R_INF;
         }
-        bool IsInf() const
+        bool IsInfinite() const
         {
-            return raw_value_ == FINF || raw_value_ == -FINF;
+            return raw_value_ == R_INF || raw_value_ == -R_INF;
         }
         bool IsFinite() const
         {
-            return raw_value_ != FNAN && raw_value_ != FINF && raw_value_ != -FINF;
+            return raw_value_ != R_NAN && raw_value_ != R_INF && raw_value_ != -R_INF;
         }
 
     public:
@@ -144,7 +140,7 @@ namespace mzx
         FixedNumber &operator+=(const FixedNumber &a)
         {
             raw_value_ = FixedAdd(raw_value_, a.raw_value_);
-#ifdef MZX_DEBUG
+#ifndef NDEBUG
             debug_value_ = RawToFloat(raw_value_);
 #endif
             return *this;
@@ -152,7 +148,7 @@ namespace mzx
         FixedNumber &operator-=(const FixedNumber &a)
         {
             raw_value_ = FixedSub(raw_value_, a.raw_value_);
-#ifdef MZX_DEBUG
+#ifndef NDEBUG
             debug_value_ = RawToFloat(raw_value_);
 #endif
             return *this;
@@ -160,7 +156,7 @@ namespace mzx
         FixedNumber &operator*=(const FixedNumber &a)
         {
             raw_value_ = FixedMul(raw_value_, a.raw_value_);
-#ifdef MZX_DEBUG
+#ifndef NDEBUG
             debug_value_ = RawToFloat(raw_value_);
 #endif
             return *this;
@@ -168,77 +164,77 @@ namespace mzx
         FixedNumber &operator/=(const FixedNumber &a)
         {
             raw_value_ = FixedDiv(raw_value_, a.raw_value_);
-#ifdef MZX_DEBUG
+#ifndef NDEBUG
             debug_value_ = RawToFloat(raw_value_);
 #endif
             return *this;
         }
         bool operator==(const FixedNumber &a) const
         {
-            return raw_value_ != FNAN && a.raw_value_ != FNAN && raw_value_ == a.raw_value_;
+            return raw_value_ != R_NAN && a.raw_value_ != R_NAN && raw_value_ == a.raw_value_;
         }
         bool operator!=(const FixedNumber &a) const
         {
-            return raw_value_ == FNAN || a.raw_value_ == FNAN || raw_value_ != a.raw_value_;
+            return !(*this == a);
         }
         bool operator<(const FixedNumber &a) const
         {
-            return raw_value_ != FNAN && a.raw_value_ != FNAN && raw_value_ < a.raw_value_;
+            return raw_value_ != R_NAN && a.raw_value_ != R_NAN && raw_value_ < a.raw_value_;
         }
         bool operator<=(const FixedNumber &a) const
         {
-            return raw_value_ != FNAN && a.raw_value_ != FNAN && raw_value_ <= a.raw_value_;
+            return raw_value_ != R_NAN && a.raw_value_ != R_NAN && raw_value_ <= a.raw_value_;
         }
         bool operator>(const FixedNumber &a) const
         {
-            return raw_value_ != FNAN && a.raw_value_ != FNAN && raw_value_ > a.raw_value_;
+            return raw_value_ != R_NAN && a.raw_value_ != R_NAN && raw_value_ > a.raw_value_;
         }
         bool operator>=(const FixedNumber &a) const
         {
-            return raw_value_ != FNAN && a.raw_value_ != FNAN && raw_value_ >= a.raw_value_;
+            return raw_value_ != R_NAN && a.raw_value_ != R_NAN && raw_value_ >= a.raw_value_;
         }
 
     public:
-        static FixedNumber FromInt(int64_t value)
+        static FixedNumber FromInt(RType value)
         {
-            MZX_CHECK(std::abs(value) <= FMAX_INT);
-            return FixedNumber(value << FBITS);
+            assert(value > -R_MAX_INT && value < R_MAX_INT);
+            return FixedNumber(value << R_BITS);
         }
-        static FixedNumber FromFloat(float value)
+        static FixedNumber FromFloat(FType value)
         {
             switch (std::fpclassify(value))
             {
             case FP_NAN:
-                return FixedNumber(FNAN);
+                return FixedNumber(R_NAN);
             case FP_INFINITE:
-                return value < 0 ? FixedNumber(-FINF) : FixedNumber(FINF);
+                return value < 0 ? FixedNumber(-R_INF) : FixedNumber(R_INF);
             default:
-                MZX_CHECK(std::abs(value) <= FMAX_INT);
-                return FixedNumber(static_cast<int64_t>(value * FBASE));
+                assert(value > -R_MAX_FLT && value < -R_MAX_FLT);
+                return FixedNumber(static_cast<RType>(value * R_BASE));
             }
         }
-        static FixedNumber FromFraction(int64_t numerator, int64_t denominator)
+        static FixedNumber FromFraction(RType numerator, RType denominator)
         {
-            MZX_CHECK(std::abs(numerator) <= FMAX_INT && denominator != 0);
-            uint64_t p = std::abs(numerator);
-            uint64_t q = std::abs(denominator);
-            int64_t r = static_cast<int64_t>(((p << (FBITS + 1)) / q + 1) >> 1);
+            assert(numerator > -R_MAX_INT && numerator < R_MAX_INT && denominator > -R_MAX_INT && denominator < R_MAX_INT && denominator != 0);
+            RUType p = std::abs(numerator);
+            RUType q = std::abs(denominator);
+            auto r = static_cast<RType>(((p << (R_BITS + 1)) / q + 1) >> 1);
             return FixedNumber((numerator ^ denominator) < 0 ? -r : r);
         }
-        static const FixedNumber &NaN()
+        static const FixedNumber &Nan()
         {
-            static const FixedNumber a(FNAN);
+            static const FixedNumber a(R_NAN);
             return a;
         }
         static const FixedNumber &Infinity()
         {
-            static const FixedNumber a(FINF);
+            static const FixedNumber a(R_INF);
             return a;
         }
         static const FixedNumber &Epsilon()
         {
-            static const FixedNumber epsilon(1);
-            return epsilon;
+            static const FixedNumber a(1);
+            return a;
         }
         static const FixedNumber &Min()
         {
@@ -247,12 +243,12 @@ namespace mzx
         }
         static const FixedNumber &Max()
         {
-            static const FixedNumber a(FMAX);
+            static const FixedNumber a(R_MAX);
             return a;
         }
         static const FixedNumber &MaxInt()
         {
-            static const FixedNumber a(FMAX_INT);
+            static const FixedNumber a(R_MAX & ~R_MASK);
             return a;
         }
         static const FixedNumber &Zero()
@@ -262,23 +258,23 @@ namespace mzx
         }
         static const FixedNumber &One()
         {
-            static const FixedNumber a(FBASE);
+            static const FixedNumber a(R_BASE);
             return a;
         }
 
     private:
-        static float RawToFloat(int64_t raw_value)
+        static FType RawToFloat(RType raw_value)
         {
             switch (raw_value)
             {
-            case -FINF:
-                return -std::numeric_limits<float>::infinity();
-            case FINF:
-                return std::numeric_limits<float>::infinity();
-            case FNAN:
-                return std::numeric_limits<float>::quiet_NaN();
+            case -R_INF:
+                return -std::numeric_limits<FType>::infinity();
+            case R_INF:
+                return std::numeric_limits<FType>::infinity();
+            case R_NAN:
+                return std::numeric_limits<FType>::quiet_NaN();
             default:
-                return static_cast<float>(raw_value) / FBASE;
+                return static_cast<FType>(raw_value) / static_cast<FType>(R_BASE);
             }
         }
         static int64_t FixedAdd(int64_t a, int64_t b)
