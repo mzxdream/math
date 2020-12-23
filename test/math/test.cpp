@@ -5,8 +5,9 @@
 #include "test_vector3.h"
 #include "test_quaternion.h"
 #include "test_fixed_number.h"
+#include "test_fixed_math.h"
 
-#define OUT_TO_FILE
+//#define OUT_TO_FILE
 
 int main(int argc, char *argv[])
 {
@@ -23,6 +24,7 @@ int main(int argc, char *argv[])
     //TestVector3(10000);
     //TestQuaternion(10000);
     TestFixedNumber(10000);
+    TestFixedMath(10000);
 #ifdef OUT_TO_FILE
     fclose(stdout);
 #endif
