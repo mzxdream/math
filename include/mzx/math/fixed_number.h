@@ -375,7 +375,7 @@ namespace mzx
             RUType res = 0;
             while (dividend != 0 && nbits >= 0)
             {
-                while ((dividend & (static_cast<RUType>(1) << (sizeof(RUType) - 1))) == 0 && nbits >= 1)
+                while ((dividend & (static_cast<RUType>(1) << (sizeof(RUType) * CHAR_BIT - 1))) == 0 && nbits >= 1)
                 {
                     dividend <<= 1;
                     nbits--;
