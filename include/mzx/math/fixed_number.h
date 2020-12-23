@@ -62,7 +62,7 @@ namespace mzx
         RType ToFloorInt() const
         {
             assert(raw_value_ >= -R_MAX && raw_value_ <= R_MAX);
-            return raw_value_ >> FBITS;
+            return raw_value_ >> R_NBITS;
         }
         RType ToCeilInt() const
         {
@@ -197,7 +197,7 @@ namespace mzx
         static FixedNumber FromInt(RType value)
         {
             assert(value >= -R_MAX_INT && value <= R_MAX_INT);
-            return FixedNumber(value << R_BITS);
+            return FixedNumber(value << R_NBITS);
         }
         static FixedNumber FromFloat(FType value)
         {
@@ -217,7 +217,7 @@ namespace mzx
             assert(numerator >= -R_MAX_INT && numerator <= R_MAX_INT && denominator >= -R_MAX_INT && denominator <= R_MAX_INT && denominator != 0);
             RUType p = std::abs(numerator);
             RUType q = std::abs(denominator);
-            auto r = static_cast<RType>(((p << (R_BITS + 1)) / q + 1) >> 1);
+            auto r = static_cast<RType>(((p << (R_NBITS + 1)) / q + 1) >> 1);
             return FixedNumber((numerator ^ denominator) < 0 ? -r : r);
         }
         static const FixedNumber &Nan()
@@ -301,7 +301,7 @@ namespace mzx
             }
             if (a == R_INF || a == -R_INF)
             {
-                return a == b ? return R_NAN : a;
+                return a == b ? R_NAN : a;
             }
             if (b == R_INF || b == -R_INF)
             {
@@ -326,10 +326,10 @@ namespace mzx
                 }
                 return (a ^ b) < 0 ? -R_INF : R_INF;
             }
-            RUType x1 = p >> FBITS;
-            RUType y1 = q >> FBITS;
-            RUType x2 = p & FMASK;
-            RUType y2 = q & FMASK;
+            RUType x1 = p >> R_NBITS;
+            RUType y1 = q >> R_NBITS;
+            RUType x2 = p & R_MASK;
+            RUType y2 = q & R_MASK;
 
             assert(x1 * y1 / y1 == x1 && x1 * y1 <= R_MAX_INT);
             RUType r1 = ((x1 * y1) << R_NBITS);
@@ -368,27 +368,27 @@ namespace mzx
             {
                 return a == 0 ? R_NAN : (a > 0 ? R_INF : -R_INF);
             }
-            RType bits = R_NBITS + 1;
-            while ((divisor & 1) == 0 && bits >= 1)
+            RType nbits = R_NBITS + 1;
+            while ((divisor & 1) == 0 && nbits >= 1)
             {
                 divisor >>= 1;
-                bits--;
+                nbits--;
             }
             RUType res = 0;
-            while (dividend != 0 && bits >= 0)
+            while (dividend != 0 && nbits >= 0)
             {
-                while ((dividend & (static_cast<RUType>(1) << (sizeof(RUType) - 1))) == 0 && bits >= 1)
+                while ((dividend & (static_cast<RUType>(1) << (sizeof(RUType) - 1))) == 0 && nbits >= 1)
                 {
                     dividend <<= 1;
-                    bits--;
+                    nbits--;
                 }
                 auto t = dividend / divisor;
                 dividend %= divisor;
-                assert((t << bits) >> bits == t);
-                assert(res + (t << bits) - (t << bits) == res);
-                res += (t << bits);
+                assert((t << nbits) >> nbits == t);
+                assert(res + (t << nbits) - (t << nbits) == res);
+                res += (t << nbits);
                 dividend <<= 1;
-                --bits;
+                --nbits;
             }
             assert(res <= R_MAX * 2);
             return (a ^ b) < 0 ? -static_cast<RType>((res + 1) >> 1) : static_cast<RType>((res + 1) >> 1);

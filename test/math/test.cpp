@@ -4,8 +4,9 @@
 #include "test_math_util.h"
 #include "test_vector3.h"
 #include "test_quaternion.h"
+#include "test_fixed_number.h"
 
-//#define OUT_TO_FILE
+#define OUT_TO_FILE
 
 int main(int argc, char *argv[])
 {
@@ -22,9 +23,10 @@ int main(int argc, char *argv[])
     std::cout << std::hex << (unsigned)-1 << std::endl;
     std::cout.precision(17);
     srand((unsigned)time(NULL));
-    TestMathUtil(100000);
-    TestVector3(10000);
-    TestQuaternion(10000);
+    //TestMathUtil(100000);
+    //TestVector3(10000);
+    //TestQuaternion(10000);
+    TestFixedNumber(10000);
 #ifdef OUT_TO_FILE
     fclose(stdout);
 #endif
