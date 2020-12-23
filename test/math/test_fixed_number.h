@@ -27,7 +27,7 @@ inline void TestFixedNumber(int count)
     auto a17 = a * b;
     auto a18 = a / b;
     a += b;
-    a -=b ;
+    a -= b;
     a *= b;
     a /= b;
     auto a19 = a == b;
