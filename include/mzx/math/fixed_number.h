@@ -5,7 +5,6 @@
 #include <cmath>
 #include <limits>
 #include <cassert>
-#include <mzx/math/fixed_consts.h>
 
 namespace mzx
 {
@@ -369,42 +368,40 @@ namespace mzx
             {
                 return a == 0 ? R_NAN : (a > 0 ? R_INF : -R_INF);
             }
-            uint64_t result = 0;
-            int64_t bits = FBITS + 1;
-            while ((divisor & 0xF) == 0 && bits >= 4)
+            RType bits = R_NBITS + 1;
+            while ((divisor & 1) == 0 && bits >= 1)
             {
-                divisor >>= 4;
-                bits -= 4;
+                divisor >>= 1;
+                bits--;
             }
+            RUType res = 0;
             while (dividend != 0 && bits >= 0)
             {
-                while ((dividend & 0xF000000000000000ULL) == 0 && bits >= 4)
-                {
-                    dividend <<= 4;
-                    bits -= 4;
-                }
-                while ((dividend & 0x8000000000000000ULL) == 0 && bits >= 1)
+                while ((dividend & (static_cast<RUType>(1) << (sizeof(RUType) - 1))) == 0 && bits >= 1)
                 {
                     dividend <<= 1;
                     bits--;
                 }
-                uint64_t t = dividend / divisor;
+                auto t = dividend / divisor;
                 dividend %= divisor;
-                MZX_CHECK(((double)t * (1ULL << bits)) / 2 <= FMAX);
-                MZX_CHECK(((double)result + (t << bits)) / 2 <= FMAX);
-                result += (t << bits);
+                assert((t << bits) >> bits == t);
+                assert(res + (t << bits) - (t << bits) == res);
+                res += (t << bits);
                 dividend <<= 1;
                 --bits;
             }
-            return (a ^ b) < 0 ? -static_cast<int64_t>((result + 1) >> 1) : static_cast<int64_t>((result + 1) >> 1);
+            assert(res <= R_MAX * 2);
+            return (a ^ b) < 0 ? -static_cast<RType>((res + 1) >> 1) : static_cast<RType>((res + 1) >> 1);
         }
 
     private:
-        int64_t raw_value_;
-#ifdef MZX_DEBUG
-        float debug_value_;
+        RType raw_value_;
+#ifndef NDEBUG
+        FType debug_value_;
 #endif
     };
+
+    using Fixed64 = FixedNumber<int64_t, 32, float>;
 } // namespace mzx
 
 #endif
