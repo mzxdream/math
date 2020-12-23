@@ -17,10 +17,6 @@ int main(int argc, char *argv[])
         return 0;
     }
 #endif
-    std::cout << std::numeric_limits<int64_t>::min() << std::endl;
-    std::cout << std::abs(std::numeric_limits<int64_t>::min()) << std::endl;
-    std::cout << std::boolalpha << std::is_signed_v<bool> << std::endl;
-    std::cout << std::hex << (unsigned)-1 << std::endl;
     std::cout.precision(17);
     srand((unsigned)time(NULL));
     //TestMathUtil(100000);
