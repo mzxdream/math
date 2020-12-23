@@ -345,9 +345,9 @@ void TestMul(int count)
             --i;
             continue;
         }
-        auto k1 = Fixed64::FromFloat(a);
-        auto k2 = Fixed64::FromFloat(b);
-        t1 = k1.ToFloat() * k2.ToFloat();
+        //auto k1 = Fixed64::FromFloat(a);
+        //auto k2 = Fixed64::FromFloat(b);
+        //t1 = k1.ToFloat() * k2.ToFloat();
         auto t2 = Fixed64::FromFloat(a) * Fixed64::FromFloat(b);
         auto diff = abs(t1 - t2.ToFloat());
         if (diff_max < diff)
@@ -389,9 +389,9 @@ void TestDiv(int count)
             --i;
             continue;
         }
-        auto k1 = Fixed64::FromFloat(a);
-        auto k2 = Fixed64::FromFloat(b);
-        t1 = k1.ToFloat() / k2.ToFloat();
+        //auto k1 = Fixed64::FromFloat(a);
+        //auto k2 = Fixed64::FromFloat(b);
+        //t1 = k1.ToFloat() / k2.ToFloat();
         auto t2 = Fixed64::FromFloat(a) / Fixed64::FromFloat(b);
         auto diff = abs(t1 - t2.ToFloat());
         if (diff_max < diff)
