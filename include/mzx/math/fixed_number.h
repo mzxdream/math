@@ -285,11 +285,7 @@ namespace mzx
             }
             if (a == R_INF || a == -R_INF)
             {
-                if (a == -b)
-                {
-                    return R_NAN;
-                }
-                return a;
+                return a == -b ? R_NAN : a;
             }
             if (b == R_INF || b == -R_INF)
             {
@@ -298,76 +294,80 @@ namespace mzx
             assert(a + b - a == b && a + b >= -R_MAX && a + b <= R_MAX);
             return a + b;
         }
-        static int64_t FixedSub(int64_t a, int64_t b)
+        static RType FixedSub(RType a, RType b)
         {
-            if (a == FNAN || b == FNAN)
+            if (a == R_NAN || b == R_NAN)
             {
-                return FNAN;
+                return R_NAN;
             }
-            if (a == FINF || a == -FINF)
+            if (a == R_INF || a == -R_INF)
             {
-                if (a == b)
-                {
-                    return FNAN;
-                }
-                return a;
+                return a == b ? return R_NAN : a;
             }
-            if (b == FINF || b == -FINF)
+            if (b == R_INF || b == -R_INF)
             {
                 return -b;
             }
-            MZX_CHECK(std::abs(static_cast<double>(a) - b) <= FMAX);
+            assert(a - b + b == a && a - b >= -R_MAX && a + b <= R_MAX);
             return a - b;
         }
-        static int64_t FixedMul(int64_t a, int64_t b)
+        static RType FixedMul(RType a, RType b)
         {
-            if (a == FNAN || b == FNAN)
+            if (a == R_NAN || b == R_NAN)
             {
-                return FNAN;
+                return R_NAN;
             }
-            uint64_t p = std::abs(a);
-            uint64_t q = std::abs(b);
-            if (p == FINF || q == FINF)
+            RUType p = std::abs(a);
+            RUType q = std::abs(b);
+            if (p == R_INF || q == R_INF)
             {
                 if (a == 0 || b == 0)
                 {
-                    return FNAN;
+                    return R_NAN;
                 }
-                return (a ^ b) < 0 ? -FINF : FINF;
+                return (a ^ b) < 0 ? -R_INF : R_INF;
             }
-            uint64_t x1 = p >> FBITS;
-            uint64_t y1 = q >> FBITS;
-            uint64_t x2 = p & FMASK;
-            uint64_t y2 = q & FMASK;
-            MZX_CHECK((double)x1 * y1 * FBASE <= FMAX);
-            MZX_CHECK(((double)x2 * y2 + FHALF) / 2 <= FMAX);
-            MZX_CHECK((((double)x1 * y1) * FBASE + (double)x1 * y2 + (double)x2 * y1 + (((double)x2 * y2 + FHALF) / FBASE)) <= FMAX);
-            int64_t r = static_cast<int64_t>(((x1 * y1) << FBITS) + x1 * y2 + x2 * y1 + ((x2 * y2 + FHALF) >> FBITS));
-            return (a ^ b) < 0 ? -r : r;
+            RUType x1 = p >> FBITS;
+            RUType y1 = q >> FBITS;
+            RUType x2 = p & FMASK;
+            RUType y2 = q & FMASK;
+
+            assert(x1 * y1 / y1 == x1 && x1 * y1 <= R_MAX_INT);
+            RUType r1 = ((x1 * y1) << R_NBITS);
+            assert(x1 * y2 / y2 == x1);
+            RUType r2 = x1 * y2;
+            assert(x2 * y1 / y1 == x2);
+            RUType r3 = x2 * y1;
+            assert(x2 * y2 / y2 == x2 && x2 * y2 + R_HALF - R_HALF == R_HALF);
+            RUType r4 = ((x2 * y2 + R_HALF) >> R_NBITS);
+            assert(r1 + r2 - r2 == r1 && r1 + r2 + r3 - r3 == r1 + r2 && r1 + r2 + r3 + r4 - r4 == r1 + r2 + r3);
+            RUType res = r1 + r2 + r3 + r4;
+            assert(res <= R_MAX);
+            return (a ^ b) < 0 ? -static_cast<RType>(res) : static_cast<RType>(res);
         }
-        static int64_t FixedDiv(int64_t a, int64_t b)
+        static RType FixedDiv(RType a, RType b)
         {
-            if (a == FNAN || b == FNAN)
+            if (a == R_NAN || b == R_NAN)
             {
-                return FNAN;
+                return R_NAN;
             }
-            uint64_t dividend = std::abs(a);
-            uint64_t divisor = std::abs(b);
-            if (dividend == FINF)
+            RUType dividend = std::abs(a);
+            RUType divisor = std::abs(b);
+            if (dividend == R_INF)
             {
-                if (divisor == FINF)
+                if (divisor == R_INF)
                 {
-                    return FNAN;
+                    return R_NAN;
                 }
-                return (a ^ b) < 0 ? -FINF : FINF;
+                return (a ^ b) < 0 ? -R_INF : R_INF;
             }
-            if (divisor == FINF)
+            if (divisor == R_INF)
             {
                 return 0;
             }
             if (b == 0)
             {
-                return a == 0 ? FNAN : (a > 0 ? FINF : -FINF);
+                return a == 0 ? R_NAN : (a > 0 ? R_INF : -R_INF);
             }
             uint64_t result = 0;
             int64_t bits = FBITS + 1;
