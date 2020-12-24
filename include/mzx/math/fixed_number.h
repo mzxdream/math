@@ -12,7 +12,7 @@ namespace mzx
     class FixedNumber
     {
     public:
-        static_assert(N > 1 && N < sizeof(T) * CHAR_BIT - 1);
+        static_assert(N > 0 && N < sizeof(T) * CHAR_BIT - 1);
         using RType = std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, T>;
         using RUType = std::make_unsigned_t<RType>;
         using FType = std::enable_if_t<std::is_floating_point_v<F>, F>;
