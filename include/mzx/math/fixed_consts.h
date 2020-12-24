@@ -19,13 +19,11 @@ namespace mzx
         static constexpr int64_t HALF_SQRT2 = 6074001000LL; //1.4142135623730951
         static constexpr int64_t TWO_SQRT2 = 6074001000LL;  //1.4142135623730951
         static constexpr int64_t COMPARE_EPSILON = 123LL;
-
-        static constexpr int64_t RAD2DEG = 246083499208LL; //57.29577951308232
-        static constexpr int64_t DEG2RAD = 74961321LL;     //0.017453292519943295
-
         static constexpr int64_t ATAN2_P1 = -199700839LL;  //-0.0464964749
         static constexpr int64_t ATAN2_P2 = 684249365LL;   //0.15931422
         static constexpr int64_t ATAN2_P3 = 1407129057LL;  //0.327622764
+        static constexpr int64_t PI_TABLE[] = {1, 2, 3};
+        static constexpr int64_t COS_TABLE[] = {1, 2, 3};
     };
 } // namespace mzx
 
