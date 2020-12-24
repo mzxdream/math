@@ -100,7 +100,7 @@ namespace mzx
             }
             RCUType num = a.Get();
             RCUType res = 0;
-            RCUType bit = static_cast<RCUType>(1) << (sizeof(RCUType) * CHAR_BIT - 2);
+            RCUType bit = static_cast<RCUType>(1) << (sizeof(RCType) * CHAR_BIT - 2);
             while (bit > num)
             {
                 bit >>= 2;
@@ -109,7 +109,7 @@ namespace mzx
             {
                 if (num >= res + bit)
                 {
-                    num -= res + bit;
+                    num -= (res + bit);
                     res = (res >> 1) + bit;
                 }
                 else
@@ -135,7 +135,7 @@ namespace mzx
             {
                 if (num >= res + bit)
                 {
-                    num -= res + bit;
+                    num -= (res + bit);
                     res = (res >> 1) + bit;
                 }
                 else
@@ -172,8 +172,8 @@ namespace mzx
         }
         static RType SinDeg(const RType &a)
         {
-            assert(RType::R_BASE * 90 / 90 == RType::R_BASE);
-            assert(a.Get() = RType::R_BASE * 90 / (RType::R_BASE * 90) == a.Get());
+            static_assert(RType::R_BASE * 90 / 90 == RType::R_BASE);
+            assert(a.Get() + RType::R_BASE * 90 - RType::R_BASE * 90 == a.Get());
             return !a.IsFinite() ? RType::Nan() : RType(-CosDegRaw(a.Get() + RType::R_BASE * 90));
         }
         static RType Cos(const RType &a)
@@ -222,11 +222,11 @@ namespace mzx
             {
                 r = HalfPI() - r;
             }
-            if (a < FixedNumber::ZERO)
+            if (a < RType::Zero())
             {
                 r = PI() - r;
             }
-            if (b < FixedNumber::ZERO)
+            if (b < RType::Zero())
             {
                 r = -r;
             }
@@ -263,18 +263,18 @@ namespace mzx
             assert(raw_value * RConsts::R_BASE * 360 / (RConsts::R_BASE * 360) == raw_value);
             return RType(raw_value * RConsts::R_BASE * 360 / RConsts::TWO_PI);
         }
-        static RType Deg2Rad(RType deg)
+        static RType Deg2Rad(const RType &deg)
         {
             if (!deg.IsFinite())
             {
                 return RType::Nan();
             }
+            static_assert(RType::R_BASE * 360 / 360 == RType::R_BASE);
             auto raw_value = deg.Get() % (RType::R_BASE * 360);
             if (raw_value < 0)
             {
                 raw_value += (RType::R_BASE * 360);
             }
-            static_assert(RType::R_BASE * 360 / 360 == RType::R_BASE);
             assert(raw_value * RConsts::TWO_PI / RConsts::TWO_PI == raw_value);
             return RType(raw_value * RConsts::TWO_PI / (RType::R_BASE * 360));
         }
