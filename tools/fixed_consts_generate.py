@@ -94,4 +94,8 @@ if __name__ == "__main__":
         print("usage: \n")
         print("    python generate.py inlFilePath rtype nbits")
     else:
-        generateConsts(sys.argv[1], sys.argv[2], int(sys.argv[3]))
+        rtype = sys.argv[2]
+        nbits = int(sys.argv[3])
+        if rtype != "int64_t":
+            print("only import int64_t")
+        generateConsts(sys.argv[1], rtype, nbits)
