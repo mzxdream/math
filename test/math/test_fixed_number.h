@@ -2,6 +2,7 @@
 #include <mzx/math/fixed_number.h>
 
 using namespace mzx;
+using Fixed64 = FixedNumber<int64_t, 32>;
 
 static const auto FIXED_EPS = 0.000001f;
 static const auto FIXED_FMIN = -100000;
