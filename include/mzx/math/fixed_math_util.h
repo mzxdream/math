@@ -86,7 +86,7 @@ namespace mzx
         }
         static RType Sqrt(const RType &a)
         {
-            if (a.IsNAN() || a.IsPosInf())
+            if (a.IsNAN() || a.IsPosInfinite())
             {
                 return a;
             }
@@ -261,9 +261,9 @@ namespace mzx
                     }
                 }
             }
-            static_assert(RConsts::R_BASE * 360 / 360 == RConsts::R_BASE);
-            assert(raw_value * RConsts::R_BASE * 360 / (RConsts::R_BASE * 360) == raw_value);
-            return RType(raw_value * RConsts::R_BASE * 360 / RConsts::TWO_PI);
+            static_assert(RType::R_BASE * 360 / 360 == RType::R_BASE);
+            assert(raw_value * RType::R_BASE * 360 / (RType::R_BASE * 360) == raw_value);
+            return RType(raw_value * RType::R_BASE * 360 / RConsts::TWO_PI);
         }
         static RType Deg2Rad(const RType &deg)
         {
