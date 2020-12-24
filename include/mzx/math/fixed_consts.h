@@ -17,7 +17,7 @@ namespace mzx
         static constexpr int64_t TWO_PI = 26986075409LL; //6.283185307179586
         static constexpr int64_t SQRT2 = 6074001000LL; //1.4142135623730951
         static constexpr int64_t HALF_SQRT2 = 3037000500LL; //0.7071067811865476
-        static constexpr int64_t TWO_SQRT2 = 12148002000LL; //12148001999.9042
+        static constexpr int64_t TWO_SQRT2 = 12148002000LL; //2.8284271247461903
         static constexpr int64_t COMPARE_EPSILON = 4295LL; //1e-06
         static constexpr int64_t ATAN2_P1 = -199700839LL; //-0.0464964749
         static constexpr int64_t ATAN2_P2 = 684249365LL; //0.15931422
