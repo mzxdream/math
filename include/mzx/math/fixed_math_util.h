@@ -243,7 +243,7 @@ namespace mzx
             auto raw_value = rad.Get();
             if (raw_value < 0)
             {
-                for (auto i = PI_TABLE_LEN - 1; i >= 0; --i)
+                for (int i = PI_TABLE_LEN - 1; i >= 0; --i)
                 {
                     if (-raw_value >= RConsts::PI_TABLE[i])
                     {
@@ -253,7 +253,7 @@ namespace mzx
             }
             else
             {
-                for (auto i = PI_TABLE_LEN - 1; i >= 0; --i)
+                for (int i = PI_TABLE_LEN - 1; i >= 0; --i)
                 {
                     if (raw_value > RConsts::PI_TABLE[i])
                     {

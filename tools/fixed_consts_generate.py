@@ -72,7 +72,7 @@ def generateConsts(inlFilePath, rtype, nbits):
         "halfSqrt2": round(math.sqrt(2) * base / 2.0),
         "halfSqrt2Raw": math.sqrt(2) / 2.0,
         "twoSqrt2": round(math.sqrt(2) * base * 2.0),
-        "twoSqrt2Raw": math.sqrt(2) * base * 2.0,
+        "twoSqrt2Raw": math.sqrt(2) * 2.0,
         "compareEpsilon": round(compareEpsilonRaw * base),
         "compareEpsilonRaw": compareEpsilonRaw,
         "atan2p1": round(-0.0464964749 * base),
