@@ -5,7 +5,7 @@
 #include "test_vector3.h"
 #include "test_quaternion.h"
 #include "test_fixed_number.h"
-#include "test_fixed_math.h"
+#include "test_fixed_math_util.h"
 
 //#define OUT_TO_FILE
 
