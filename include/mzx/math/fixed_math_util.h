@@ -1,5 +1,5 @@
-#ifndef __MZX_FIXED_MATH_H__
-#define __MZX_FIXED_MATH_H__
+#ifndef __MZX_FIXED_MATH_UTIL_H__
+#define __MZX_FIXED_MATH_UTIL_H__
 
 #include <mzx/math/fixed_number.h>
 #include <mzx/math/math_util.h>
