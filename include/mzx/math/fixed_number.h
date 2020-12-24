@@ -413,8 +413,6 @@ namespace mzx
         FType debug_value_;
 #endif
     };
-
-    using Fixed64 = FixedNumber<int64_t, 32, float>;
 } // namespace mzx
 
 #endif
