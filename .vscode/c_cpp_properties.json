@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "MinGW-w64",
+            "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/include"
             ],
@@ -21,6 +21,17 @@
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-x64"
+        },
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/include"
+            ],
+            "defines": [],
+            "compilerPath": "clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
         }
     ],
     "version": 4
