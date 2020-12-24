@@ -83,34 +83,7 @@ namespace mzx
         using RType = T;
 
     public:
-        static constexpr RType Epsilon()
-        {
-            return 0;
-        }
-        static constexpr RType PI()
-        {
-            return 3;
-        }
-        static constexpr RType HalfPI()
-        {
-            return 1;
-        }
-        static constexpr RType TwoPI()
-        {
-            return 6;
-        }
-        static constexpr RType Sqrt2()
-        {
-            return 1;
-        }
-        static constexpr RType HalfSqrt2()
-        {
-            return 1;
-        }
-        static constexpr RType TwoSqrt2()
-        {
-            return 3;
-        }
+        
     };
 
     using MathConstsF = MathConsts<float>;

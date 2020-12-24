@@ -8,7 +8,6 @@ using namespace mzx;
 
 inline void TestMathUtil(int count)
 {
-    auto a1 = MathUtilF::Epsilon();
     auto a2 = MathUtilF::PI();
     auto a3 = MathUtilF::HalfPI();
     auto a4 = MathUtilF::TwoPI();
