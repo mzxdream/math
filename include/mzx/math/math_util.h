@@ -2,7 +2,6 @@
 #define __MZX_MATH_UTIL_H__
 
 #include <cmath>
-#include <mzx/math/math_consts.h>
 
 namespace mzx
 {
