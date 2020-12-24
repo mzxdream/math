@@ -159,7 +159,7 @@ namespace mzx
         }
         bool operator==(const Vector3 &a) const
         {
-            return MathUtil::CompareApproximately(SqrDistance(*this, a), R_ZERO);
+            return MathUtil::CompareApproximately(SqrDistance(*this, a), R_ZERO) == 0;
         }
         bool operator!=(const Vector3 &a) const
         {
@@ -181,7 +181,7 @@ namespace mzx
             auto y = target.y_ - current.y_;
             auto z = target.z_ - current.z_;
             auto sqr_dist = x * x + y * y + z * z;
-            if (MathUtil::CompareApproximately(sqr_dist, R_ZERO) || (max_distance >= R_ZERO && sqr_dist <= max_distance * max_distance))
+            if (MathUtil::CompareApproximately(sqr_dist, R_ZERO) == 0 || (max_distance >= R_ZERO && sqr_dist <= max_distance * max_distance))
             {
                 return target;
             }
@@ -233,7 +233,7 @@ namespace mzx
         static Vector3 Normalize(const Vector3 &value)
         {
             auto mag = Magnitude(value);
-            if (!MathUtil::CompareApproximately(mag, R_ZERO))
+            if (MathUtil::CompareApproximately(mag, R_ZERO) != 0)
             {
                 return value / mag;
             }
@@ -246,7 +246,7 @@ namespace mzx
         static Vector3 Project(const Vector3 &vec, const Vector3 &on_normal)
         {
             auto sqr_mag = on_normal.SqrMagnitude();
-            if (!MathUtil::CompareApproximately(sqr_mag, R_ZERO))
+            if (MathUtil::CompareApproximately(sqr_mag, R_ZERO) != 0)
             {
                 return on_normal * Dot(vec, on_normal) / sqr_mag;
             }
@@ -255,7 +255,7 @@ namespace mzx
         static Vector3 ProjectOnPlane(const Vector3 &vec, const Vector3 &plane_normal)
         {
             auto sqr_mag = plane_normal.SqrMagnitude();
-            if (!MathUtil::CompareApproximately(sqr_mag, R_ZERO))
+            if (MathUtil::CompareApproximately(sqr_mag, R_ZERO) != 0)
             {
                 return vec - plane_normal * Dot(vec, plane_normal) / sqr_mag;
             }
@@ -264,7 +264,7 @@ namespace mzx
         static RType Angle(const Vector3 &from, const Vector3 &to)
         {
             auto sqr_mag = from.SqrMagnitude() * to.SqrMagnitude();
-            if (!MathUtil::CompareApproximately(sqr_mag, R_ZERO))
+            if (MathUtil::CompareApproximately(sqr_mag, R_ZERO) != 0)
             {
                 auto dot = MathUtil::Clamp(Dot(from, to) / MathUtil::Sqrt(sqr_mag), -R_ONE, R_ONE);
                 return MathUtil::Rad2Deg(MathUtil::Acos(dot));
@@ -324,17 +324,17 @@ namespace mzx
         {
             auto lhs_mag = Magnitude(lhs);
             auto rhs_mag = Magnitude(rhs);
-            if (MathUtil::CompareApproximately(lhs_mag, R_ZERO) || MathUtil::CompareApproximately(rhs_mag, R_ZERO))
+            if (MathUtil::CompareApproximately(lhs_mag, R_ZERO) == 0 || MathUtil::CompareApproximately(rhs_mag, R_ZERO) == 0)
             {
                 return Lerp(lhs, rhs, t);
             }
             auto lerped_magnitude = MathUtil::Lerp(lhs_mag, rhs_mag, t);
             auto dot = Dot(lhs, rhs) / (lhs_mag * rhs_mag);
-            if (MathUtil::GTEApproximately(dot, R_ONE))
+            if (MathUtil::CompareApproximately(dot, R_ONE) >= 0)
             {
                 return Lerp(lhs, rhs, t);
             }
-            else if (MathUtil::LTEApproximately(dot, -R_ONE))
+            else if (MathUtil::CompareApproximately(dot, -R_ONE) <= 0)
             {
                 auto lhs_norm = lhs / lhs_mag;
                 auto axis = OrthoNormalVectorFast(lhs_norm);
@@ -359,7 +359,7 @@ namespace mzx
         static void OrthoNormalize(Vector3 *in_u, Vector3 *in_v)
         {
             auto mag = Magnitude(*in_u);
-            if (!MathUtil::CompareApproximately(mag, R_ZERO))
+            if (MathUtil::CompareApproximately(mag, R_ZERO) != 0)
             {
                 *in_u /= mag;
             }
@@ -371,7 +371,7 @@ namespace mzx
             auto dot0 = Dot(*in_u, *in_v);
             *in_v -= dot0 * (*in_u);
             mag = Magnitude(*in_v);
-            if (!MathUtil::CompareApproximately(mag, R_ZERO))
+            if (MathUtil::CompareApproximately(mag, R_ZERO) != 0)
             {
                 *in_v /= mag;
             }
@@ -383,7 +383,7 @@ namespace mzx
         static void OrthoNormalize(Vector3 *in_u, Vector3 *in_v, Vector3 *in_w)
         {
             auto mag = Magnitude(*in_u);
-            if (!MathUtil::CompareApproximately(mag, R_ZERO))
+            if (MathUtil::CompareApproximately(mag, R_ZERO) != 0)
             {
                 *in_u /= mag;
             }
@@ -395,7 +395,7 @@ namespace mzx
             auto dot0 = Dot(*in_u, *in_v);
             *in_v -= dot0 * (*in_u);
             mag = Magnitude(*in_v);
-            if (!MathUtil::CompareApproximately(mag, R_ZERO))
+            if (MathUtil::CompareApproximately(mag, R_ZERO) != 0)
             {
                 *in_v /= mag;
             }
@@ -408,7 +408,7 @@ namespace mzx
             dot0 = Dot(*in_u, *in_w);
             *in_w -= dot0 * (*in_u) + dot1 * (*in_v);
             mag = Magnitude(*in_w);
-            if (!MathUtil::CompareApproximately(mag, R_ZERO))
+            if (MathUtil::CompareApproximately(mag, R_ZERO) != 0)
             {
                 *in_w /= mag;
             }
@@ -424,17 +424,17 @@ namespace mzx
 
             auto lhs_mag = Magnitude(lhs);
             auto rhs_mag = Magnitude(rhs);
-            if (!MathUtil::CompareApproximately(lhs_mag, R_ZERO) && !MathUtil::CompareApproximately(rhs_mag, R_ZERO))
+            if (MathUtil::CompareApproximately(lhs_mag, R_ZERO) != 0 && MathUtil::CompareApproximately(rhs_mag, R_ZERO) != 0)
             {
                 auto lhs_norm = lhs / lhs_mag;
                 auto rhs_norm = rhs / rhs_mag;
 
                 auto dot = Dot(lhs_norm, rhs_norm);
-                if (MathUtil::GTEApproximately(dot, R_ONE))
+                if (MathUtil::CompareApproximately(dot, R_ONE) >= 0)
                 {
                     return MoveTowards(lhs, rhs, max_magnitude);
                 }
-                else if (MathUtil::LTEApproximately(dot, -R_ONE))
+                else if (MathUtil::CompareApproximately(dot, -R_ONE) <= 0)
                 {
                     auto axis = OrthoNormalVectorFast(lhs_norm);
                     RType m[3][3];
