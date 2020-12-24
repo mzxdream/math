@@ -1,5 +1,5 @@
 #include <iostream>
-#include <mzx/math/fixed_math.h>
+#include <mzx/math/fixed_math_util.h>
 
 using namespace mzx;
 
