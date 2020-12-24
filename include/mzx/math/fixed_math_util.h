@@ -129,6 +129,7 @@ namespace mzx
                 num <<= RType::R_NBITS;
                 res <<= RType::R_NBITS;
             }
+            static_assert(RType::R_NBITS >= 2);
             bit = static_cast<RCUType>(1) << (RType::R_NBITS - 2);
             while (bit != 0)
             {
@@ -165,29 +166,71 @@ namespace mzx
             }
             return (n & 1) == 0 ? Pow(a * a, n >> 1) : Pow(a * a, n >> 1) * a;
         }
-        static constexpr RType Cos(RType a)
+        static RType CosDeg(const RType &a)
         {
-            return cos(a);
+            return !a.IsFinite() ? RType::Nan() : RType(CosDegRaw(a.Get()));
         }
-        static constexpr RType Sin(RType a)
+        static RType SinDeg(const RType &a)
         {
-            return sin(a);
+            assert(RType::R_BASE * 90 / 90 == RType::R_BASE);
+            assert(a.Get() = RType::R_BASE * 90 / (RType::R_BASE * 90) == a.Get());
+            return !a.IsFinite() ? RType::Nan() : RType(-CosDegRaw(a.Get() + RType::R_BASE * 90));
         }
-        static constexpr RType Acos(RType a)
+        static RType Cos(const RType &a)
         {
-            return acos(a);
+            return CosDeg(Rad2Deg(a));
         }
-        static constexpr RType Asin(RType a)
+        static RType Sin(const RType &a)
         {
-            return asin(a);
+            return SinDeg(Rad2Deg(a));
         }
-        static constexpr RType Atan(RType a)
+        static RType Acos(const RType &a)
         {
-            return atan(a);
+            if (Abs(a) == RType::One())
+            {
+                return Atan2(RType::Zero(), a);
+            }
+            return Atan2(Sqrt((RType::One() + a) * (RType::One() - a)), a);
         }
-        static constexpr RType Atan2(RType b, RType a)
+        static RType Asin(const RType &a)
         {
-            return atan2(b, a);
+            if (Abs(a) == RType::One())
+            {
+                return Atan2(a, RType::Zero());
+            }
+            return Atan2(a, Sqrt((RType::One() + a) * (RType::One() - a)));
+        }
+        static RType Atan(const RType &a)
+        {
+            return Atan2(a, RType::One());
+        }
+        static RType Atan2(const RType &b, const RType &a)
+        {
+            if (!a.IsFinite() || !b.IsFinite())
+            {
+                return RType::Nan();
+            }
+            static const RType ATAN2_P1(RConsts::ATAN2_P1);
+            static const RType ATAN2_P2(RConsts::ATAN2_P2);
+            static const RType ATAN2_P3(RConsts::ATAN2_P3);
+            RType x = Abs(a);
+            RType y = Abs(b);
+            RType t = x > y ? y / x : x / y;
+            RType s = t * t;
+            RType r = ((ATAN2_P1 * s + ATAN2_P2) * s - ATAN2_P3) * s * t + t;
+            if (y > x)
+            {
+                r = HalfPI() - r;
+            }
+            if (a < FixedNumber::ZERO)
+            {
+                r = PI() - r;
+            }
+            if (b < FixedNumber::ZERO)
+            {
+                r = -r;
+            }
+            return r;
         }
         static RType Rad2Deg(const RType &rad)
         {
@@ -216,7 +259,7 @@ namespace mzx
                     }
                 }
             }
-            assert(RConsts::R_BASE * 360 / 360 == RConsts::R_BASE);
+            static_assert(RConsts::R_BASE * 360 / 360 == RConsts::R_BASE);
             assert(raw_value * RConsts::R_BASE * 360 / (RConsts::R_BASE * 360) == raw_value);
             return RType(raw_value * RConsts::R_BASE * 360 / RConsts::TWO_PI);
         }
@@ -231,9 +274,49 @@ namespace mzx
             {
                 raw_value += (RType::R_BASE * 360);
             }
-            assert(RType::R_BASE * 360 / 360 == RType::R_BASE);
+            static_assert(RType::R_BASE * 360 / 360 == RType::R_BASE);
             assert(raw_value * RConsts::TWO_PI / RConsts::TWO_PI == raw_value);
             return RType(raw_value * RConsts::TWO_PI / (RType::R_BASE * 360));
+        }
+
+    private:
+        static RCType CosDegLookupTable(RCType deg) //[0 - 90]
+        {
+            static constexpr auto NUM90 = RType::R_BASE * 90;
+            assert(deg >= 0 && deg <= NUM90);
+            deg *= RConsts::COS_TABLE_LEN;
+            auto a = deg / NUM90;
+            auto b = deg - a * NUM90;
+            if (b == 0)
+            {
+                return RConsts::COS_TABLE[a];
+            }
+            return (RConsts::COS_TABLE[a] * (NUM90 - b) + RConsts::COS_TABLE[a + 1] * b) / NUM90;
+        }
+        static RCType CosDegRaw(RCType raw_value)
+        {
+            if (raw_value < 0)
+            {
+                raw_value = -raw_value;
+            }
+            static_assert(RType::R_BASE * 360 / 360 == RType::R_BASE);
+            if (raw_value >= RType::R_BASE * 360)
+            {
+                raw_value %= (RType::R_BASE * 360);
+            }
+            if (raw_value <= RType::R_BASE * 90)
+            {
+                return CosDegLookupTable(raw_value);
+            }
+            else if (raw_value <= RType::R_BASE * 180)
+            {
+                return -CosDegLookupTable(RType::R_BASE * 180 - raw_value);
+            }
+            else if (raw_value <= RType::R_BASE * 270)
+            {
+                return -CosDegLookupTable(raw_value - RType::R_BASE * 180);
+            }
+            return CosDegLookupTable(RType::R_BASE * 360 - raw_value);
         }
     };
 } // namespace mzx
