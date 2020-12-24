@@ -238,10 +238,12 @@ namespace mzx
             {
                 return RType::Nan();
             }
+            static constexpr auto PI_TABLE_LEN = sizeof(RConsts::PI_TABLE) / sizeof(RConsts::PI_TABLE[0]);
+            static_assert(PI_TABLE_LEN > 0);
             auto raw_value = rad.Get();
             if (raw_value < 0)
             {
-                for (auto i = RConsts::PI_TABLE_LEN - 1; i >= 0; --i)
+                for (auto i = PI_TABLE_LEN - 1; i >= 0; --i)
                 {
                     if (-raw_value >= RConsts::PI_TABLE[i])
                     {
@@ -251,7 +253,7 @@ namespace mzx
             }
             else
             {
-                for (auto i = RConsts::PI_TABLE_LEN - 1; i > 0; --i)
+                for (auto i = PI_TABLE_LEN - 1; i >= 0; --i)
                 {
                     if (raw_value > RConsts::PI_TABLE[i])
                     {
@@ -284,7 +286,9 @@ namespace mzx
         {
             static constexpr auto NUM90 = RType::R_BASE * 90;
             assert(deg >= 0 && deg <= NUM90);
-            deg *= RConsts::COS_TABLE_LEN;
+            static constexpr auto COS_TABLE_LEN = sizeof(RConsts::COS_TABLE) / sizeof(RConsts::COS_TABLE[0]);
+            static_assert(COS_TABLE_LEN > 0);
+            deg *= (COS_TABLE_LEN - 1);
             auto a = deg / NUM90;
             auto b = deg - a * NUM90;
             if (b == 0)
