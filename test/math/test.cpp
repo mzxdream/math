@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     //TestVector3(10000);
     //TestQuaternion(10000);
     TestFixedNumber(10000);
-    TestFixedMath(10000);
+    TestFixedMathUtil(10000);
 #ifdef OUT_TO_FILE
     fclose(stdout);
 #endif
