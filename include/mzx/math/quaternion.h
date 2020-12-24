@@ -164,7 +164,7 @@ namespace mzx
         }
         bool operator==(const Quaternion &a) const
         {
-            return MathUtil::GTEApproximately(Dot(*this, a), R_ONE);
+            return MathUtil::CompareApproximately(Dot(*this, a), R_ONE) >= 0;
         }
         bool operator!=(const Quaternion &a) const
         {
@@ -179,7 +179,7 @@ namespace mzx
         static RType Angle(const Quaternion &a, const Quaternion &b)
         {
             auto dot = Dot(a, b);
-            if (MathUtil::GTEApproximately(dot, R_ONE))
+            if (MathUtil::CompareApproximately(dot, R_ONE) >= 0)
             {
                 return R_ZERO;
             }
@@ -199,7 +199,7 @@ namespace mzx
         static Quaternion RotateTowards(const Quaternion &from, const Quaternion &to, const RType &max_degrees)
         {
             auto angle = Angle(from, to);
-            if (MathUtil::CompareApproximately(angle, R_ZERO))
+            if (MathUtil::CompareApproximately(angle, R_ZERO) == 0)
             {
                 return to;
             }
@@ -208,7 +208,7 @@ namespace mzx
         static Quaternion Normalize(const Quaternion &a)
         {
             auto sqr_mag = Dot(a, a);
-            if (MathUtil::CompareApproximately(sqr_mag, R_ZERO))
+            if (MathUtil::CompareApproximately(sqr_mag, R_ZERO) == 0)
             {
                 return Identity();
             }
@@ -219,7 +219,7 @@ namespace mzx
         {
             auto from_mag = from.Magnitude();
             auto to_mag = to.Magnitude();
-            if (MathUtil::CompareApproximately(from_mag, R_ZERO) || MathUtil::CompareApproximately(to_mag, R_ZERO))
+            if (MathUtil::CompareApproximately(from_mag, R_ZERO) == 0 || MathUtil::CompareApproximately(to_mag, R_ZERO) == 0)
             {
                 return Identity();
             }
@@ -290,7 +290,7 @@ namespace mzx
         {
             auto angle_rad = MathUtil::Deg2Rad(angle);
             auto mag = axis.Magnitude();
-            if (!MathUtil::CompareApproximately(mag, R_ZERO))
+            if (MathUtil::CompareApproximately(mag, R_ZERO) != 0)
             {
                 auto a = angle_rad / R_TWO;
                 auto cosa = MathUtil::Cos(a);
@@ -309,7 +309,7 @@ namespace mzx
             if (!LookRotationToQuaternion(view, up, &q))
             {
                 auto mag = view.Magnitude();
-                if (!MathUtil::CompareApproximately(mag, R_ZERO))
+                if (MathUtil::CompareApproximately(mag, R_ZERO) != 0)
                 {
                     RType m[3][3];
                     SetMatrix3x3FromToRotation(m, Vector3<RType>::Forward(), view / mag);
@@ -349,7 +349,7 @@ namespace mzx
             Quaternion qz(R_ZERO, R_ZERO, sinz, cosz);
 
             auto ret = (qy * qx) * qz; //zxy
-            assert(MathUtil::CompareApproximately(ret.SqrMagnitude(), R_ONE));
+            assert(MathUtil::CompareApproximately(ret.SqrMagnitude(), R_ONE) == 0);
             return ret;
         }
         static Vector3<RType> ToEulerRad(const Quaternion &quat)
@@ -414,7 +414,7 @@ namespace mzx
             auto q = a.Normalized();
 
             *angle = R_TWO * MathUtil::Acos(q.w_);
-            if (MathUtil::CompareApproximately(*angle, R_ZERO))
+            if (MathUtil::CompareApproximately(*angle, R_ZERO) == 0)
             {
                 axis->Set(R_ONE, R_ZERO, R_ZERO);
                 return;
@@ -464,11 +464,11 @@ namespace mzx
         static void SetMatrix3x3FromToRotation(RType matrix[3][3], const Vector3<RType> &from, const Vector3<RType> &to)
         {
             auto e = Vector3<RType>::Dot(from, to);
-            if (MathUtil::GTEApproximately(e, R_ONE))
+            if (MathUtil::CompareApproximately(e, R_ONE) >= 0)
             {
                 SetMatrix3x3Identity(matrix);
             }
-            else if (MathUtil::LTEApproximately(e, -R_ONE))
+            else if (MathUtil::CompareApproximately(e, -R_ONE) <= 0)
             {
                 Vector3<RType> left(R_ZERO, from[2], -from[1]);
                 auto dot = Vector3<RType>::Dot(left, left);
@@ -565,7 +565,7 @@ namespace mzx
                 auto k = inext[j];
 
                 auto r = MathUtil::Sqrt(matrix[i][i] - matrix[j][j] - matrix[k][k] + R_ONE);
-                assert(!MathUtil::CompareApproximately(r, R_ZERO));
+                assert(MathUtil::CompareApproximately(r, R_ZERO) != 0);
                 RType *apk_quat[3] = {&q.x_, &q.y_, &q.z_};
                 *apk_quat[i] = r / R_TWO;
                 r *= R_TWO;
@@ -578,7 +578,7 @@ namespace mzx
         static bool LookRotationToMatrix3x3(const Vector3<RType> &view, const Vector3<RType> &up, RType matrix[3][3])
         {
             auto mag = view.Magnitude();
-            if (MathUtil::CompareApproximately(mag, R_ZERO))
+            if (MathUtil::CompareApproximately(mag, R_ZERO) == 0)
             {
                 SetMatrix3x3Identity(matrix);
                 return false;
@@ -586,14 +586,14 @@ namespace mzx
             auto z = view / mag;
             auto x = Vector3<RType>::Cross(up, z);
             mag = x.Magnitude();
-            if (MathUtil::CompareApproximately(mag, R_ZERO))
+            if (MathUtil::CompareApproximately(mag, R_ZERO) == 0)
             {
                 SetMatrix3x3Identity(matrix);
                 return false;
             }
             x /= mag;
             auto y = Vector3<RType>::Cross(z, x);
-            if (!MathUtil::CompareApproximately(y.SqrMagnitude(), R_ONE))
+            if (MathUtil::CompareApproximately(y.SqrMagnitude(), R_ONE) != 0)
             {
                 return false;
             }

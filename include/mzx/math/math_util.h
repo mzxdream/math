@@ -25,17 +25,13 @@ namespace mzx
         {
             return static_cast<RType>(numerator) / static_cast<RType>(denominator);
         }
-        static constexpr bool CompareApproximately(RType a, RType b)
+        static constexpr int CompareApproximately(RType a, RType b)
         {
-            return std::abs(a - b) <= MathConsts<T>::Epsilon();
-        }
-        static constexpr bool GTEApproximately(RType a, RType b)
-        {
-            return a >= b - MathConsts<T>::Epsilon();
-        }
-        static constexpr bool LTEApproximately(RType a, RType b)
-        {
-            return a <= b + MathConsts<T>::Epsilon();
+            if (std::abs(a - b) <= MathConsts<T>::Epsilon())
+            {
+                return 0;
+            }
+            return a < b ? -1 : 1;
         }
         static constexpr RType Abs(RType a)
         {
