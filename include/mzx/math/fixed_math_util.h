@@ -11,8 +11,8 @@ namespace mzx
     class MathUtil<FixedNumber<T, N, F>>
     {
         using RType = FixedNumber<T, N, F>;
-        using RCType = RType::RType;
-        using RCUType = RType::RUType;
+        using RCType = typename RType::RType;
+        using RCUType = typename RType::RUType;
         using RConsts = FixedConsts<T, N>;
 
     public:
@@ -189,13 +189,51 @@ namespace mzx
         {
             return atan2(b, a);
         }
-        static constexpr RType Rad2Deg(RType rad)
+        static RType Rad2Deg(const RType &rad)
         {
-            return rad * static_cast<RType>(180) / PI();
+            if (!rad.IsFinite())
+            {
+                return RType::Nan();
+            }
+            auto raw_value = rad.Get();
+            if (raw_value < 0)
+            {
+                for (auto i = RConsts::PI_TABLE_LEN - 1; i >= 0; --i)
+                {
+                    if (-raw_value >= RConsts::PI_TABLE[i])
+                    {
+                        raw_value += RConsts::PI_TABLE[i];
+                    }
+                }
+            }
+            else
+            {
+                for (auto i = RConsts::PI_TABLE_LEN - 1; i > 0; --i)
+                {
+                    if (raw_value > RConsts::PI_TABLE[i])
+                    {
+                        raw_value -= RConsts::PI_TABLE[i];
+                    }
+                }
+            }
+            assert(RConsts::R_BASE * 360 / 360 == RConsts::R_BASE);
+            assert(raw_value * RConsts::R_BASE * 360 / (RConsts::R_BASE * 360) == raw_value);
+            return RType(raw_value * RConsts::R_BASE * 360 / RConsts::TWO_PI);
         }
-        static constexpr RType Deg2Rad(RType deg)
+        static RType Deg2Rad(RType deg)
         {
-            return deg * PI() / static_cast<RType>(180);
+            if (!deg.IsFinite())
+            {
+                return RType::Nan();
+            }
+            auto raw_value = deg.Get() % (RType::R_BASE * 360);
+            if (raw_value < 0)
+            {
+                raw_value += (RType::R_BASE * 360);
+            }
+            assert(RType::R_BASE * 360 / 360 == RType::R_BASE);
+            assert(raw_value * RConsts::TWO_PI / RConsts::TWO_PI == raw_value);
+            return RType(raw_value * RConsts::TWO_PI / (RType::R_BASE * 360));
         }
     };
 } // namespace mzx
