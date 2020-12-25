@@ -250,12 +250,16 @@ namespace mzx
                         raw_value += RConsts::PI_TABLE[i];
                     }
                 }
+                if (raw_value < 0)
+                {
+                    raw_value += RConsts::TWO_PI;
+                }
             }
             else
             {
                 for (int i = PI_TABLE_LEN - 1; i >= 0; --i)
                 {
-                    if (raw_value > RConsts::PI_TABLE[i])
+                    if (raw_value >= RConsts::PI_TABLE[i])
                     {
                         raw_value -= RConsts::PI_TABLE[i];
                     }
