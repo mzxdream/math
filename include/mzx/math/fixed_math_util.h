@@ -31,6 +31,11 @@ namespace mzx
             static const RType a(RConsts::TWO_PI);
             return a;
         }
+        static const RType &Num360()
+        {
+            static const RType a = RType::FromInt(360);
+            return a;
+        }
         static const RType &Sqrt2()
         {
             static const RType a(RConsts::SQRT2);
@@ -264,8 +269,7 @@ namespace mzx
                     }
                 }
             }
-            assert(!IsMulOverflow(raw_value, RC_360));
-            return RType(raw_value * RC_360 / RConsts::TWO_PI);
+            return RType(raw_value) * Num360() / TwoPI();
         }
         static RType Deg2Rad(const RType &deg)
         {
@@ -278,8 +282,7 @@ namespace mzx
             {
                 raw_value += RC_360;
             }
-            assert(!IsMulOverflow(raw_value, RConsts::TWO_PI));
-            return RType(raw_value * RConsts::TWO_PI / RC_360);
+            return RType(raw_value) * TwoPI() / Num360();
         }
 
     private:
