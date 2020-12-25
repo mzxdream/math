@@ -5,6 +5,7 @@
 #include <cmath>
 #include <limits>
 #include <cassert>
+#include <mzx/math/math_util.h>
 
 #ifndef NDEBUG
 #define MZX_FIXED_NUMBER_DEBUG
@@ -294,7 +295,7 @@ namespace mzx
             {
                 return b;
             }
-            assert(!IsOverFlowAdd(a, b) && a + b >= -R_MAX && a + b <= R_MAX);
+            assert(!IsAddOverflow(a, b) && a + b >= -R_MAX && a + b <= R_MAX);
             return a + b;
         }
         static RType FixedSub(RType a, RType b)
@@ -311,7 +312,7 @@ namespace mzx
             {
                 return -b;
             }
-            assert(!IsOverFlowSub(a, b) && a - b >= -R_MAX && a + b <= R_MAX);
+            assert(!IsSubOverflow(a, b) && a - b >= -R_MAX && a + b <= R_MAX);
             return a - b;
         }
         static RType FixedMul(RType a, RType b)
@@ -335,13 +336,13 @@ namespace mzx
             RUType x2 = p & R_MASK;
             RUType y2 = q & R_MASK;
 
-            assert(!IsOverFlowMulti(x1, y1) && x1 * y1 <= R_MAX_INT);
+            assert(!IsMulOverflow(x1, y1) && x1 * y1 <= R_MAX_INT);
             RUType res = ((x1 * y1) << R_NBITS);
-            assert(!IsOverFlowMulti(x1, y2) && !IsOverFlowAdd(res, x1 * y2));
+            assert(!IsMulOverflow(x1, y2) && !IsAddOverflow(res, x1 * y2));
             res += x1 * y2;
-            assert(!IsOverFlowMulti(x2, y1) && !IsOverFlowAdd(res, x2 * y1));
+            assert(!IsMulOverflow(x2, y1) && !IsAddOverflow(res, x2 * y1));
             res += x2 * y1;
-            assert(!IsOverFlowMulti(x2, y2) && !IsOverFlowAdd(x2 * y2, static_cast<RUType>(R_HALF)) && !IsOverFlowAdd(res, (x2 * y2 + R_HALF) >> R_NBITS));
+            assert(!IsMulOverflow(x2, y2) && !IsAddOverflow(x2 * y2, static_cast<RUType>(R_HALF)) && !IsAddOverflow(res, (x2 * y2 + R_HALF) >> R_NBITS));
             res += (x2 * y2 + R_HALF) >> R_NBITS;
             assert(res <= R_MAX);
             return (a ^ b) < 0 ? -static_cast<RType>(res) : static_cast<RType>(res);
@@ -386,29 +387,13 @@ namespace mzx
                 }
                 auto t = dividend / divisor;
                 dividend %= divisor;
-                assert(!IsOverFlowMulti(t, static_cast<RUType>(1) << static_cast<RUType>(nbits)));
-                assert(!IsOverFlowAdd(res, t << nbits));
+                assert(!IsMulOverflow(t, static_cast<RUType>(1) << static_cast<RUType>(nbits)) && !IsAddOverflow(res, t << nbits));
                 res += (t << nbits);
                 dividend <<= 1;
                 --nbits;
             }
             assert(res <= static_cast<RUType>(R_MAX) * static_cast<RUType>(2));
             return (a ^ b) < 0 ? -static_cast<RType>((res + 1) >> 1) : static_cast<RType>((res + 1) >> 1);
-        }
-        template <typename T1>
-        static bool IsOverFlowAdd(T1 a, T1 b)
-        {
-            return a + b - b != a;
-        }
-        template <typename T1>
-        static bool IsOverFlowSub(T1 a, T1 b)
-        {
-            return a - b + b != a;
-        }
-        template <typename T1>
-        static bool IsOverFlowMulti(T1 a, T1 b)
-        {
-            return b != 0 && a * b / b != a;
         }
 
     private:
