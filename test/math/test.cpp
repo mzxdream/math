@@ -20,10 +20,10 @@ int main(int argc, char *argv[])
 #endif
     std::cout.precision(17);
     srand((unsigned)time(NULL));
-    TestMathUtil(100000);
+    //TestMathUtil(100000);
     //TestVector3(10000);
     //TestQuaternion(10000);
-    //TestFixedNumber(10000);
+    TestFixedNumber(10000);
     TestFixedMathUtil(10000);
 #ifdef OUT_TO_FILE
     fclose(stdout);
