@@ -10,68 +10,62 @@
 
 namespace mzx
 {
+#ifdef MZX_BUILTIN_OVERFLOW_EXIST
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T>, bool>
+    IsAddOverflow(T a, T b)
+    {
+        return __builtin_add_overflow_p(a, b, (__typeof__((a) + (b)))0);
+    }
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T>, bool>
+    IsSubOverflow(T a, T b)
+    {
+        return __builtin_sub_overflow_p(a, b, (__typeof__((a) - (b)))0);
+    }
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T>, bool>
+    IsMulOverflow(T a, T b)
+    {
+        return __builtin_mul_overflow_p(a, b, (__typeof__((a) * (b)))0);
+    }
+#else
     template <typename T>
     inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_unsigned_v<T>, bool>
     IsAddOverflow(T a, T b)
     {
-#ifdef MZX_BUILTIN_OVERFLOW_EXIST
-        return __builtin_add_overflow_p(a, b, (__typeof__((a) + (b)))0);
-#else
         return a > std::numeric_limits<T>::max() - b;
-#endif
     }
-
     template <typename T>
     inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, bool>
     IsAddOverflow(T a, T b)
     {
-#ifdef MZX_BUILTIN_OVERFLOW_EXIST
-        return __builtin_add_overflow_p(a, b, (__typeof__((a) + (b)))0);
-#else
         return b > 0 ? (a > std::numeric_limits<T>::max() - b) : (a < std::numeric_limits<T>::min() - b);
-#endif
     }
 
     template <typename T>
     inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_unsigned_v<T>, bool>
     IsSubOverflow(T a, T b)
     {
-#ifdef MZX_BUILTIN_OVERFLOW_EXIST
-        return __builtin_sub_overflow_p(a, b, (__typeof__((a) - (b)))0);
-#else
         return a < b;
-#endif
     }
-
     template <typename T>
     inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, bool>
     IsSubOverflow(T a, T b)
     {
-#ifdef MZX_BUILTIN_OVERFLOW_EXIST
-        return __builtin_sub_overflow_p(a, b, (__typeof__((a) - (b)))0);
-#else
         return b > 0 ? (a < std::numeric_limits<T>::min() + b) : (a > std::numeric_limits<T>::max() + b);
-#endif
     }
 
     template <typename T>
     inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_unsigned_v<T>, bool>
     IsMulOverflow(T a, T b)
     {
-#ifdef MZX_BUILTIN_OVERFLOW_EXIST
-        return __builtin_mul_overflow_p(a, b, (__typeof__((a) * (b)))0);
-#else
         return b == 0 ? false : a > std::numeric_limits<T>::max() / b;
-#endif
     }
-
     template <typename T>
     inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, bool>
     IsMulOverflow(T a, T b)
     {
-#ifdef MZX_BUILTIN_OVERFLOW_EXIST
-        return __builtin_mul_overflow_p(a, b, (__typeof__((a) * (b)))0);
-#else
         if (a == -1)
         {
             return b == std::numeric_limits<T>::min();
@@ -89,8 +83,8 @@ namespace mzx
             return a > std::numeric_limits<T>::max() / b || a < std::numeric_limits<T>::min() / b;
         }
         return a < std::numeric_limits<T>::max() / b || a > std::numeric_limits<T>::min() / b;
-#endif
     }
+#endif
 
     template <typename T>
     inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_unsigned_v<T>, bool>
@@ -98,7 +92,6 @@ namespace mzx
     {
         return false;
     }
-
     template <typename T>
     inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, bool>
     IsDivOverflow(T a, T b)
