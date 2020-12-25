@@ -1,28 +1,9 @@
 #include <iostream>
 #include <mzx/math/fixed_number.h>
+#include "test_fixed_inl.h"
 
 using namespace mzx;
 using Fixed64 = FixedNumber<int64_t, 32>;
-
-static const auto FIXED_EPS = 0.000001f;
-static const auto FIXED_FMIN = -100000;
-static const auto FIXED_FMAX = 100000;
-static const auto FIXED_INT_MIN = -100000.0f;
-static const auto FIXED_INT_MAX = 100000.0f;
-
-inline int64_t RandInt(int64_t mina, int64_t maxa)
-{
-    auto f = static_cast<float>(rand()) / RAND_MAX;
-    auto t = mina + static_cast<int64_t>((maxa - mina) * f);
-    return std::max(mina, std::min(t, maxa));
-}
-
-inline float RandFloat(float mina, float maxa)
-{
-    auto f = static_cast<float>(rand()) / RAND_MAX;
-    auto t = mina + f * (maxa - mina);
-    return std::max(mina, std::min(t, maxa));
-}
 
 void TestNaNInf(int count)
 {
@@ -72,7 +53,7 @@ void TestFromInt(int count)
     int diff_count = 0;
     for (int i = 0; i < count; i++)
     {
-        auto t1 = RandInt(FIXED_INT_MIN, FIXED_INT_MAX);
+        auto t1 = RandInt(FIXED_IMIN, FIXED_IMAX);
         auto t2 = Fixed64::FromInt(t1);
         auto diff = abs(t1 - t2.ToFloat());
         if (diff_max < diff)
@@ -123,8 +104,8 @@ void TestFromFraction(int count)
     int diff_count = 0;
     for (int i = 0; i < count; i++)
     {
-        auto a = RandInt(FIXED_INT_MIN, FIXED_INT_MAX);
-        auto b = RandInt(FIXED_INT_MIN, FIXED_INT_MAX);
+        auto a = RandInt(FIXED_IMIN, FIXED_IMAX);
+        auto b = RandInt(FIXED_IMIN, FIXED_IMAX);
         if (b == 0)
         {
             --i;
