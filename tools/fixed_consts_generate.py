@@ -42,11 +42,13 @@ def generateConsts(inlFilePath, rtype, nbits):
     base = (1 << nbits)
 
     piContent = ""
-    for i in range(2, 64, 2):
-        j = i * base * math.pi
-        if j > 0x7FFFFFFFFFFFFFFF:
+    i = 2
+    while True:
+        j = round(i * base * math.pi)
+        if j > pow(2, 63) - 1:
             break
-        piContent += ", {0}LL".format(round(j))
+        piContent += ", {0}LL".format(j)
+        i = i * 2
     piContent = piContent[2:]
 
     cosContent = ""
