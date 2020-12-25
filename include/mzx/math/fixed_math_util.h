@@ -242,34 +242,8 @@ namespace mzx
             {
                 return RType::Nan();
             }
-            static constexpr auto PI_TABLE_LEN = sizeof(RConsts::PI_TABLE) / sizeof(RConsts::PI_TABLE[0]);
-            static_assert(PI_TABLE_LEN > 0);
-            auto raw_value = rad.Get();
-            if (raw_value < 0)
-            {
-                for (int i = PI_TABLE_LEN - 1; i >= 0; --i)
-                {
-                    if (-raw_value >= RConsts::PI_TABLE[i])
-                    {
-                        raw_value += RConsts::PI_TABLE[i];
-                    }
-                }
-                if (raw_value < 0)
-                {
-                    raw_value += RConsts::TWO_PI;
-                }
-            }
-            else
-            {
-                for (int i = PI_TABLE_LEN - 1; i >= 0; --i)
-                {
-                    if (raw_value >= RConsts::PI_TABLE[i])
-                    {
-                        raw_value -= RConsts::PI_TABLE[i];
-                    }
-                }
-            }
-            return RType(raw_value) * Num360() / TwoPI();
+            static const RType rad2Deg(RConsts::RAD2DEG);
+            return rad * rad2Deg;
         }
         static RType Deg2Rad(const RType &deg)
         {
@@ -282,7 +256,8 @@ namespace mzx
             {
                 raw_value += RC_360;
             }
-            return RType(raw_value) * TwoPI() / Num360();
+            static const RType deg2Rad(RConsts::DEG2RAD);
+            return RType(raw_value) * deg2Rad;
         }
 
     private:
