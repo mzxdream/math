@@ -167,7 +167,7 @@ namespace mzx
             }
             if (n < 0)
             {
-                return RType::One() / Pow(a, -n);
+                return Pow(RType::One() / a, -n);
             }
             return (n & 1) == 0 ? Pow(a * a, n >> 1) : Pow(a * a, n >> 1) * a;
         }
@@ -298,7 +298,10 @@ namespace mzx
             {
                 return RConsts::COS_TABLE[a];
             }
-            return (RConsts::COS_TABLE[a] * (RC_90 - b) + RConsts::COS_TABLE[a + 1] * b) / RC_90;
+            auto x = RConsts::COS_TABLE[a];
+            auto y = RConsts::COS_TABLE[a + 1];
+            assert(!IsMulOverflow(y - x, b) && !IsAddOverflow(x, (y - x) * b / RC_90));
+            return x + (y - x) * b / RC_90;
         }
         static RCType CosDegRaw(RCType raw_value)
         {
