@@ -6,6 +6,10 @@
 #include <limits>
 #include <cassert>
 
+#ifndef NDEBUG
+#define MZX_FIXED_NUMBER_DEBUG
+#endif
+
 namespace mzx
 {
     template <typename T, std::size_t N, typename F = float>
@@ -31,7 +35,7 @@ namespace mzx
     public:
         explicit FixedNumber(RType raw_value = 0)
             : raw_value_(raw_value)
-#ifndef NDEBUG
+#ifdef MZX_FIXED_NUMBER_DEBUG
               ,
               debug_value_(RawToFloat(raw_value))
 #endif
@@ -42,7 +46,7 @@ namespace mzx
         void Set(RType raw_value)
         {
             raw_value_ = raw_value;
-#ifndef NDEBUG
+#ifdef MZX_FIXED_NUMBER_DEBUG
             debug_value_ = RawToFloat(raw_value_);
 #endif
         }
@@ -139,7 +143,7 @@ namespace mzx
         FixedNumber &operator+=(const FixedNumber &a)
         {
             raw_value_ = FixedAdd(raw_value_, a.raw_value_);
-#ifndef NDEBUG
+#ifdef MZX_FIXED_NUMBER_DEBUG
             debug_value_ = RawToFloat(raw_value_);
 #endif
             return *this;
@@ -147,7 +151,7 @@ namespace mzx
         FixedNumber &operator-=(const FixedNumber &a)
         {
             raw_value_ = FixedSub(raw_value_, a.raw_value_);
-#ifndef NDEBUG
+#ifdef MZX_FIXED_NUMBER_DEBUG
             debug_value_ = RawToFloat(raw_value_);
 #endif
             return *this;
@@ -155,7 +159,7 @@ namespace mzx
         FixedNumber &operator*=(const FixedNumber &a)
         {
             raw_value_ = FixedMul(raw_value_, a.raw_value_);
-#ifndef NDEBUG
+#ifdef MZX_FIXED_NUMBER_DEBUG
             debug_value_ = RawToFloat(raw_value_);
 #endif
             return *this;
@@ -163,7 +167,7 @@ namespace mzx
         FixedNumber &operator/=(const FixedNumber &a)
         {
             raw_value_ = FixedDiv(raw_value_, a.raw_value_);
-#ifndef NDEBUG
+#ifdef MZX_FIXED_NUMBER_DEBUG
             debug_value_ = RawToFloat(raw_value_);
 #endif
             return *this;
@@ -409,7 +413,7 @@ namespace mzx
 
     private:
         RType raw_value_;
-#ifndef NDEBUG
+#ifdef MZX_FIXED_NUMBER_DEBUG
         FType debug_value_;
 #endif
     };
