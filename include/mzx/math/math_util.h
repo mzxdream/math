@@ -2,9 +2,86 @@
 #define __MZX_MATH_UTIL_H__
 
 #include <cmath>
+#include <limits>
 
 namespace mzx
 {
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_unsigned_v<T>, bool>
+    IsAddOverflow(T a, T b)
+    {
+        return a > std::numeric_limits<T>::max() - b;
+    }
+
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, bool>
+    IsAddOverflow(T a, T b)
+    {
+        return b > 0 ? (a > std::numeric_limits<T>::max() - b) : (a < std::numeric_limits<T>::min() - b);
+    }
+
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_unsigned_v<T>, bool>
+    IsSubOverflow(T a, T b)
+    {
+        return a < b;
+    }
+
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, bool>
+    IsSubOverflow(T a, T b)
+    {
+        return b > 0 ? (a < std::numeric_limits<T>::min() + b) : (a > std::numeric_limits<T>::max() + b);
+    }
+
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_unsigned_v<T>, bool>
+    IsMulOverflow(T a, T b)
+    {
+        return b == 0 ? false : a > std::numeric_limits<T>::max() / b;
+    }
+
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, bool>
+    IsMulOverflow(T a, T b)
+    {
+        if (a == -1)
+        {
+            return b == std::numeric_limits<T>::min();
+        }
+        if (b == -1)
+        {
+            return a == std::numeric_limits<T>::min();
+        }
+        if (b == 0)
+        {
+            return false;
+        }
+        if (b > 0)
+        {
+            return a > std::numeric_limits<T>::max() / b || a < std::numeric_limits<T>::min() / b;
+        }
+        return a < std::numeric_limits<T>::max() / b || a > std::numeric_limits<T>::min() / b;
+    }
+
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_unsigned_v<T>, bool>
+    IsDivOverflow(T a, T b)
+    {
+        return false;
+    }
+
+    template <typename T>
+    inline constexpr typename std::enable_if_t<std::is_integral_v<T> && std::is_signed_v<T>, bool>
+    IsDivOverflow(T a, T b)
+    {
+        if (a == -1)
+        {
+            return b == std::numeric_limits<T>::min();
+        }
+        return b == -1 && a == std::numeric_limits<T>::min();
+    }
+
     template <typename T, typename = void>
     class MathUtil;
 
