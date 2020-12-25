@@ -428,6 +428,7 @@ static void TestRad2Deg(int count)
         }
         auto t2 = MathUtilF64::Rad2Deg(Fixed64::FromFloat(a));
         auto diff = abs(t1 - t2.ToFloat());
+        diff = std::min(diff, 360 - diff);
         if (diff_max < diff)
         {
             diff_max = diff;

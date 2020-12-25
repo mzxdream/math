@@ -21,6 +21,8 @@ namespace mzx
         static constexpr {rtype} PI = {pi}LL; //{piRaw}
         static constexpr {rtype} HALF_PI = {halfPI}LL; //{halfPIRaw}
         static constexpr {rtype} TWO_PI = {twoPI}LL; //{twoPIRaw}
+        static constexpr {rtype} RAD2DEG = {rad2Deg}LL; //{rad2DegRaw}
+        static constexpr {rtype} DEG2RAD = {deg2Rad}LL; //{deg2RadRaw}
         static constexpr {rtype} SQRT2 = {sqrt2}LL; //{sqrt2Raw}
         static constexpr {rtype} HALF_SQRT2 = {halfSqrt2}LL; //{halfSqrt2Raw}
         static constexpr {rtype} TWO_SQRT2 = {twoSqrt2}LL; //{twoSqrt2Raw}
@@ -28,8 +30,6 @@ namespace mzx
         static constexpr {rtype} ATAN2_P1 = {atan2p1}LL; //{atan2p1Raw}
         static constexpr {rtype} ATAN2_P2 = {atan2p2}LL; //{atan2p2Raw}
         static constexpr {rtype} ATAN2_P3 = {atan2p3}LL; //{atan2p3Raw}
-        //2PI,4PI,8PI,......
-        static constexpr {rtype} PI_TABLE[] = {{{piTable}}};
         //[0-90]
         static constexpr {rtype} COS_TABLE[] = {{{cosTable}}};
     }};
@@ -40,16 +40,6 @@ namespace mzx
 
 def generateConsts(inlFilePath, rtype, nbits):
     base = (1 << nbits)
-
-    piContent = ""
-    i = 2
-    while True:
-        j = round(i * base * math.pi)
-        if j > pow(2, 63) - 1:
-            break
-        piContent += ", {0}LL".format(j)
-        i = i * 2
-    piContent = piContent[2:]
 
     cosContent = ""
     cosTableCount = 3600
@@ -69,6 +59,10 @@ def generateConsts(inlFilePath, rtype, nbits):
         "halfPIRaw": math.pi / 2.0,
         "twoPI": round(math.pi * base * 2.0),
         "twoPIRaw": math.pi * 2.0,
+        "rad2Deg": round(180 * base / math.pi),
+        "rad2DegRaw": 180 / math.pi,
+        "deg2Rad": round(math.pi * base / 180),
+        "deg2RadRaw": math.pi / 180,
         "sqrt2": round(math.sqrt(2) * base),
         "sqrt2Raw": math.sqrt(2),
         "halfSqrt2": round(math.sqrt(2) * base / 2.0),
@@ -83,7 +77,6 @@ def generateConsts(inlFilePath, rtype, nbits):
         "atan2p2Raw": 0.15931422,
         "atan2p3": round(0.327622764 * base),
         "atan2p3Raw": 0.327622764,
-        "piTable": piContent,
         "cosTable": cosContent,
     }
     content = inlContent.format(**datas)
