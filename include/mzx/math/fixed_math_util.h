@@ -172,9 +172,8 @@ namespace mzx
         }
         static RType SinDeg(const RType &a)
         {
-            static_assert(RType::R_BASE * 90 / 90 == RType::R_BASE);
-            assert(a.Get() + RType::R_BASE * 90 - RType::R_BASE * 90 == a.Get());
-            return !a.IsFinite() ? RType::Nan() : RType(-CosDegRaw(a.Get() + RType::R_BASE * 90));
+            assert(!IsAddOverflow(a.Get(), RC_90));
+            return !a.IsFinite() ? RType::Nan() : RType(-CosDegRaw(a.Get() + RC_90));
         }
         static RType Cos(const RType &a)
         {
@@ -265,9 +264,8 @@ namespace mzx
                     }
                 }
             }
-            static_assert(RType::R_BASE * 360 / 360 == RType::R_BASE);
-            assert(raw_value * RType::R_BASE * 360 / (RType::R_BASE * 360) == raw_value);
-            return RType(raw_value * RType::R_BASE * 360 / RConsts::TWO_PI);
+            assert(IsMulOverflow(raw_value, RC_360));
+            return RType(raw_value * RC_360 / RConsts::TWO_PI);
         }
         static RType Deg2Rad(const RType &deg)
         {
@@ -275,31 +273,29 @@ namespace mzx
             {
                 return RType::Nan();
             }
-            static_assert(RType::R_BASE * 360 / 360 == RType::R_BASE);
-            auto raw_value = deg.Get() % (RType::R_BASE * 360);
+            auto raw_value = deg.Get() % RC_360;
             if (raw_value < 0)
             {
-                raw_value += (RType::R_BASE * 360);
+                raw_value += RC_360;
             }
-            assert(raw_value * RConsts::TWO_PI / RConsts::TWO_PI == raw_value);
-            return RType(raw_value * RConsts::TWO_PI / (RType::R_BASE * 360));
+            assert(IsMulOverflow(raw_value, RConsts::TWO_PI));
+            return RType(raw_value * RConsts::TWO_PI / RC_360);
         }
 
     private:
         static RCType CosDegLookupTable(RCType deg) //[0 - 90]
         {
-            static constexpr auto NUM90 = RType::R_BASE * 90;
-            assert(deg >= 0 && deg <= NUM90);
+            assert(deg >= 0 && deg <= RC_90);
             static constexpr auto COS_TABLE_LEN = sizeof(RConsts::COS_TABLE) / sizeof(RConsts::COS_TABLE[0]);
             static_assert(COS_TABLE_LEN > 0);
             deg *= (COS_TABLE_LEN - 1);
-            auto a = deg / NUM90;
-            auto b = deg - a * NUM90;
+            auto a = deg / RC_90;
+            auto b = deg - a * RC_90;
             if (b == 0)
             {
                 return RConsts::COS_TABLE[a];
             }
-            return (RConsts::COS_TABLE[a] * (NUM90 - b) + RConsts::COS_TABLE[a + 1] * b) / NUM90;
+            return (RConsts::COS_TABLE[a] * (RC_90 - b) + RConsts::COS_TABLE[a + 1] * b) / RC_90;
         }
         static RCType CosDegRaw(RCType raw_value)
         {
@@ -307,25 +303,28 @@ namespace mzx
             {
                 raw_value = -raw_value;
             }
-            static_assert(RType::R_BASE * 360 / 360 == RType::R_BASE);
-            if (raw_value >= RType::R_BASE * 360)
-            {
-                raw_value %= (RType::R_BASE * 360);
-            }
-            if (raw_value <= RType::R_BASE * 90)
+            raw_value %= RC_360;
+            if (raw_value <= RC_90)
             {
                 return CosDegLookupTable(raw_value);
             }
-            else if (raw_value <= RType::R_BASE * 180)
+            else if (raw_value <= RC_180)
             {
-                return -CosDegLookupTable(RType::R_BASE * 180 - raw_value);
+                return -CosDegLookupTable(RC_180 - raw_value);
             }
-            else if (raw_value <= RType::R_BASE * 270)
+            else if (raw_value <= RC_270)
             {
-                return -CosDegLookupTable(raw_value - RType::R_BASE * 180);
+                return -CosDegLookupTable(raw_value - RC_180);
             }
-            return CosDegLookupTable(RType::R_BASE * 360 - raw_value);
+            return CosDegLookupTable(RC_360 - raw_value);
         }
+
+    private:
+        static_assert(!IsMulOverflow(static_cast<RCType>(360), RType::R_BASE));
+        static constexpr RCType RC_90 = static_cast<RCType>(90) * RType::R_BASE;
+        static constexpr RCType RC_180 = static_cast<RCType>(180) * RType::R_BASE;
+        static constexpr RCType RC_270 = static_cast<RCType>(270) * RType::R_BASE;
+        static constexpr RCType RC_360 = static_cast<RCType>(360) * RType::R_BASE;
     };
 } // namespace mzx
 
