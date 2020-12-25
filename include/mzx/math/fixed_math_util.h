@@ -264,7 +264,7 @@ namespace mzx
                     }
                 }
             }
-            assert(IsMulOverflow(raw_value, RC_360));
+            assert(!IsMulOverflow(raw_value, RC_360));
             return RType(raw_value * RC_360 / RConsts::TWO_PI);
         }
         static RType Deg2Rad(const RType &deg)
@@ -278,7 +278,7 @@ namespace mzx
             {
                 raw_value += RC_360;
             }
-            assert(IsMulOverflow(raw_value, RConsts::TWO_PI));
+            assert(!IsMulOverflow(raw_value, RConsts::TWO_PI));
             return RType(raw_value * RConsts::TWO_PI / RC_360);
         }
 
