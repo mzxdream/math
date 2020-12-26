@@ -38,7 +38,7 @@ namespace mzx
 #endif"""
 
 
-def generateConsts(inlFilePath, rtype, nbits):
+def generateConsts(inlFilePath, tbits, nbits):
     base = (1 << nbits)
 
     cosContent = ""
@@ -48,8 +48,8 @@ def generateConsts(inlFilePath, rtype, nbits):
             round(math.cos(i * (math.pi / 2) / cosTableCount) * base))
     cosContent = cosContent[2:]
 
-    compareEpsilonRaw = 0.000001
-
+    compareEpsilonRaw = pow(0.1, int(nbits/4)) * 100
+    rtype = "int{}_t".format(tbits)
     datas = {
         "rtype": rtype,
         "nbits": nbits,
@@ -84,13 +84,20 @@ def generateConsts(inlFilePath, rtype, nbits):
         f.write(content.encode('utf-8'))
 
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) < 3:
         print("usage: \n")
         print("    python generate.py inlFilePath rtype nbits")
     else:
-        rtype = sys.argv[2]
+        tbits = int(sys.argv[2])
         nbits = int(sys.argv[3])
-        if rtype != "int64_t":
-            print("only import int64_t")
-        generateConsts(sys.argv[1], rtype, nbits)
+        if tbits != 16 and tbits != 32 and tbits != 64:
+            print("only import 16/32/64")
+            return
+        if nbits < 1 or nbits > tbits - 10:# 360deg limit
+            print("nbits need >= 1 and <= tbits - 10")
+            return
+        generateConsts(sys.argv[1], tbits, nbits)
+
+if __name__ == "__main__":
+    main()
