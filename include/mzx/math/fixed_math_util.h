@@ -242,8 +242,34 @@ namespace mzx
             {
                 return RType::Nan();
             }
+            static constexpr int PI_TABLE_LEN = sizeof(RConsts::PI_TABLE) / sizeof(RConsts::PI_TABLE[0]);
+            auto t = rad.Get();
+            if (t < 0)
+            {
+                for (int i = PI_TABLE_LEN; i >= 0; i--)
+                {
+                    if (-t >= RConsts::PI_TABLE[i])
+                    {
+                        t += RConsts::PI_TABLE[i];
+                    }
+                }
+                if (t < 0)
+                {
+                    t += RConsts::TWO_PI;
+                }
+            }
+            else
+            {
+                for (int i = PI_TABLE_LEN; i >= 0; i--)
+                {
+                    if (t >= RConsts::PI_TABLE[i])
+                    {
+                        t -= RConsts::PI_TABLE[i];
+                    }
+                }
+            }
             static const RType rad2Deg(RConsts::RAD2DEG);
-            return rad * rad2Deg;
+            return RType(t) * rad2Deg;
         }
         static RType Deg2Rad(const RType &deg)
         {
