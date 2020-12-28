@@ -3,8 +3,6 @@
 #include "test_fixed_inl.h"
 
 using namespace mzx;
-using Fixed64 = FixedNumber<int64_t, 32>;
-using MathUtilF64 = MathUtil<Fixed64>;
 
 static void TestAbs(int count)
 {
