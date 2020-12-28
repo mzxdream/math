@@ -3,7 +3,6 @@
 #include "test_fixed_inl.h"
 
 using namespace mzx;
-using Fixed64 = FixedNumber<int64_t, 32>;
 
 void TestNaNInf(int count)
 {

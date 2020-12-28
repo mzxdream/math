@@ -5,6 +5,9 @@
 #include <cmath>
 #include <random>
 
+using Fixed64 = FixedNumber<int64_t, 32>;
+using MathUtilF64 = MathUtil<Fixed64>;
+
 static constexpr float FIXED_EPS = 0.000001f;
 static constexpr float FIXED_FMIN = -100000.0f;
 static constexpr float FIXED_FMAX = 100000.0f;
