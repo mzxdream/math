@@ -30,6 +30,8 @@ namespace mzx
         static constexpr {rtype} ATAN2_P1 = {atan2p1}LL; //{atan2p1Raw}
         static constexpr {rtype} ATAN2_P2 = {atan2p2}LL; //{atan2p2Raw}
         static constexpr {rtype} ATAN2_P3 = {atan2p3}LL; //{atan2p3Raw}
+        //2PI, 4PI, 8PI, 16PI, ...
+        static constexpr {rtype} PI_TABLE[] = {{{piTable}}};
         //[0-90]
         static constexpr {rtype} COS_TABLE[] = {{{cosTable}}};
     }};
@@ -47,6 +49,16 @@ def generateConsts(inlFilePath, tbits, nbits):
         cosContent += ", {0}LL".format(
             round(math.cos(i * (math.pi / 2) / cosTableCount) * base))
     cosContent = cosContent[2:]
+
+    piContent = ""
+    i = 2
+    while True:
+        p = round(math.pi * i * base)
+        if p > pow(2, tbits - 1) - 1:
+            break
+        piContent += ", {0}LL".format(p)
+        i *= 2
+    piContent = piContent[2:]
 
     compareEpsilonRaw = pow(0.1, int(nbits/4)) * 100
     rtype = "int{}_t".format(tbits)
@@ -77,6 +89,7 @@ def generateConsts(inlFilePath, tbits, nbits):
         "atan2p2Raw": 0.15931422,
         "atan2p3": round(0.327622764 * base),
         "atan2p3Raw": 0.327622764,
+        "piTable": piContent,
         "cosTable": cosContent,
     }
     content = inlContent.format(**datas)
