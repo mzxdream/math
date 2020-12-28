@@ -417,10 +417,12 @@ static void TestRad2Deg(int count)
     int diff_count = 0;
     for (int i = 0; i < count; i++)
     {
-        auto a = RandFloat(0, 720);
+        auto a = RandFloat(FIXED_FMIN, FIXED_FMAX);
         auto t1 = a * 57.29577951308232;
+        t1 -= ((int64_t)t1 / 360) * 360;
         auto t2 = MathUtilF64::Rad2Deg(Fixed64::FromFloat(a));
         auto diff = abs(t1 - t2.ToFloat());
+        diff = std::min(diff, abs(360 - diff));
         if (diff_max < diff)
         {
             diff_max = diff;
