@@ -246,25 +246,30 @@ namespace mzx
             auto t = rad.Get();
             if (t < 0)
             {
-                for (int i = PI_TABLE_LEN; i >= 0; i--)
+                t += RConsts::TWO_PI;
+                for (int i = PI_TABLE_LEN - 1; i >= 0;)
                 {
                     if (-t >= RConsts::PI_TABLE[i])
                     {
                         t += RConsts::PI_TABLE[i];
                     }
-                }
-                if (t < 0)
-                {
-                    t += RConsts::TWO_PI;
+                    else
+                    {
+                        i--;
+                    }
                 }
             }
             else
             {
-                for (int i = PI_TABLE_LEN; i >= 0; i--)
+                for (int i = PI_TABLE_LEN - 1; i >= 0;)
                 {
                     if (t >= RConsts::PI_TABLE[i])
                     {
                         t -= RConsts::PI_TABLE[i];
+                    }
+                    else
+                    {
+                        i--;
                     }
                 }
             }
